@@ -8,7 +8,7 @@ class CrashSafeBtns extends StatelessWidget {
     return Container(
       child: Column(
         children: [
-          ElevatedButton(onPressed: null, child: Text('CRASH ALERT')),
+          ElevatedButton(onPressed: null, child: Text('CRASH ALERT!')),
           ElevatedButton(onPressed: null, child: Text('SAFE ALERT'))
         ]
       )
