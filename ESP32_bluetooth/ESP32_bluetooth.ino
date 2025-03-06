@@ -6,6 +6,8 @@
 // Pin definitions
 const int BUTTON_PIN = 5; // GPIO pin connected to the physical button
 const int LED_PIN = 2;    // GPIO pin connected to the internal LED (or external LED)
+int brightness = 0;  // how bright the LED is
+int fadeAmount = 5;  // how many points to fade the LED by
 
 // Define UUIDs for the BLE service and characteristic
 #define SERVICE_UUID "4fafc201-1fb5-459e-8fcc-c5c9c331914b"         // Service UUID
