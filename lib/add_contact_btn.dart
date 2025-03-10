@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
+import './add_contact_popup.dart';
 
 class AddContactBtn extends StatelessWidget {
   const AddContactBtn({super.key});
 
+  //Add contact button
   @override
   Widget build(BuildContext context) {
     return Container(
@@ -12,7 +14,8 @@ class AddContactBtn extends StatelessWidget {
           SizedBox (
             width: double.infinity,
             child: ElevatedButton(onPressed: () {
-
+              //Calling add new contact popup
+              addContactDialog(context);
             },
                 style: ElevatedButton.styleFrom(
                   foregroundColor: Colors.white70,

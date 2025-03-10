@@ -1,10 +1,40 @@
 import 'package:flutter/material.dart';
+import 'package:firebase_core/firebase_core.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'firebase_options.dart';
+import 'package:uuid/uuid.dart';
 import './crash_msg.dart';
 import './crash_safe_btns.dart';
 import './add_contact_btn.dart';
 import './emergency_contact_tbl.dart';
 
-void main() {
+//Function to generate a random unique id for each device the app is downloaded on
+Future<String> getOrGenDeviceId() async {
+  SharedPreferences prefs = await SharedPreferences.getInstance();
+  String? deviceId = prefs.getString('device_id');
+
+  //Generate unique device id if no id found
+  if (deviceId == null) {
+    var uuid = Uuid();
+    deviceId = uuid.v4();
+    await prefs.setString('device_id', deviceId);
+  }
+
+  //Return device id
+  return deviceId;
+}
+
+//Main app code
+void main() async {
+  //Firebase setup
+  WidgetsFlutterBinding.ensureInitialized();
+  await Firebase.initializeApp();
+
+  //Getting device id
+  String deviceId = await getOrGenDeviceId();
+  print('Device ID: $deviceId');
+
+  //Run app
   runApp(const MyApp());
 }
 
@@ -36,17 +66,18 @@ class MyHomePage extends StatefulWidget {
 }
 
 class _MyHomePageState extends State<MyHomePage> {
-  int _counter = 0;
+  //List of contacts for current device
+  List<Map<String, String>> contacts = [];
 
-  void _incrementCounter() {
-    setState(() {
-      // This call to setState tells the Flutter framework that something has
-      // changed in this State, which causes it to rerun the build method below
-      // so that the display can reflect the updated values. If we changed
-      // _counter without calling setState(), then the build method would not be
-      // called again, and so nothing would appear to happen.
-      _counter++;
-    });
+  //Method to add a new contact
+  void addNewContact(String name, String num) {
+    contacts.add({"name": name, "phoneNum": num});
+    print("New Contact: $name $num");
+  }
+
+  //Method for bluetooth connection
+  void bluetoothConnect() {
+     print('Bluetooth button pressed');
   }
 
   @override
@@ -62,18 +93,32 @@ class _MyHomePageState extends State<MyHomePage> {
         backgroundColor: Colors.indigo[200],
         title: Text(widget.title),
       ),
-      body: Center(
-        // Center is a layout widget. It takes a single child and positions it
-        // in the middle of the parent.
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: <Widget>[
-            CrashMsg(),
-            CrashSafeBtns(),
-            EmergencyContactTbl(),
-            AddContactBtn(),
-          ],
-        ),
+      body: Stack(
+        children: <Widget>[
+          // Your main content goes here
+          Center(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: <Widget>[
+                CrashMsg(),
+                CrashSafeBtns(),
+                EmergencyContactTbl(),
+                AddContactBtn(),
+              ],
+            ),
+          ),
+          // Bluetooth Button in the top-right corner of the main body
+          Positioned(
+            right: 10.0,
+            top: 10.0,
+            child: IconButton(
+              icon: Icon(Icons.bluetooth),
+              onPressed: bluetoothConnect, // Your Bluetooth function
+              iconSize: 30.0, // You can adjust the size of the icon
+              color: Colors.blue, // You can change the color of the icon
+            ),
+          ),
+        ],
       ),
     );
   }

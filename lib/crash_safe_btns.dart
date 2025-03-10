@@ -1,4 +1,3 @@
-import 'dart:ui';
 import 'package:flutter/material.dart';
 
 class CrashSafeBtns extends StatelessWidget {
@@ -7,7 +6,7 @@ class CrashSafeBtns extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: EdgeInsets.all(20.0),
+      padding: EdgeInsets.only(top: 10.0, bottom:10.0, right: 20.0, left: 20.0),
       child: Column(
         children: [
           Padding(
