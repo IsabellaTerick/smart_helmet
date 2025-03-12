@@ -1,15 +1,18 @@
 import 'package:flutter/material.dart';
 
 class CrashSafeBtns extends StatelessWidget {
-  const CrashSafeBtns({super.key});
+
+  final VoidCallback onPressed;
+
+  const CrashSafeBtns({super.key, required this.onPressed});
 
   @override
   Widget build(BuildContext context) {
     return Container(
       child: Column(
         children: [
-          ElevatedButton(onPressed: null, child: Text('CRASH ALERT!')),
-          ElevatedButton(onPressed: null, child: Text('SAFE ALERT'))
+          ElevatedButton(onPressed: onPressed, child: Text('CRASH ALERT!')),
+          ElevatedButton(onPressed: onPressed, child: Text('SAFE ALERT'))
         ]
       )
     );

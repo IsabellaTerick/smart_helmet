@@ -3,6 +3,10 @@ import './crash_msg.dart';
 import './crash_safe_btns.dart';
 import './add_contact_btn.dart';
 import './emergency_contact_tbl.dart';
+import './bluetooth_service.dart';
+import './led_controller.dart';
+import './connect_btn.dart';
+import './msg_display.dart';
 
 void main() {
   runApp(const MyApp());
@@ -61,6 +65,21 @@ class MyHomePage extends StatefulWidget {
 class _MyHomePageState extends State<MyHomePage> {
   int _counter = 0;
 
+  final BluetoothService _bluetoothService = BluetoothService();
+  late final LEDController _ledController;
+  String _message = "No message received";
+  bool _isConnected = false; // Track connection state
+
+
+  @override
+  void initState() {
+    super.initState();
+    _ledController = LEDController(_bluetoothService);
+    _bluetoothService.setMessageListener((message) {
+      setState(() => _message = message);
+    });
+  }
+
   void _incrementCounter() {
     setState(() {
       // This call to setState tells the Flutter framework that something has
@@ -82,9 +101,6 @@ class _MyHomePageState extends State<MyHomePage> {
     // than having to individually change instances of widgets.
     return Scaffold(
       appBar: AppBar(
-        // TRY THIS: Try changing the color here to a specific color (to
-        // Colors.amber, perhaps?) and trigger a hot reload to see the AppBar
-        // change color while the other colors stay the same.
         backgroundColor: Theme.of(context).colorScheme.inversePrimary,
         // Here we take the value from the MyHomePage object that was created by
         // the App.build method, and use it to set our appbar title.
@@ -109,10 +125,15 @@ class _MyHomePageState extends State<MyHomePage> {
           // wireframe for each widget.
           mainAxisAlignment: MainAxisAlignment.center,
           children: <Widget>[
+            ConnectBtn(
+              onPressed: _isConnected ? null : _bluetoothService.scanAndConnect,
+              isConnected: _isConnected,
+            ),
             CrashMsg(),
-            CrashSafeBtns(),
+            CrashSafeBtns(onPressed: _ledController.toggleLED),
             EmergencyContactTbl(),
             AddContactBtn(),
+            MessageDisplay(message: _message)
           ],
         ),
       ),
