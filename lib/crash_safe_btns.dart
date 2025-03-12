@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
 
 class CrashSafeBtns extends StatelessWidget {
-  const CrashSafeBtns({super.key});
+
+  final VoidCallback onPressed;
+
+  const CrashSafeBtns({super.key, required this.onPressed});
 
   @override
   Widget build(BuildContext context) {
@@ -44,6 +47,8 @@ class CrashSafeBtns extends StatelessWidget {
                 child: Text('SAFE ALERT!',
                     style: TextStyle(fontFamily: 'Nunito', fontWeight: FontWeight.bold, fontSize: 20)))
           )
+         // ElevatedButton(onPressed: onPressed, child: Text('CRASH ALERT!')),
+          // ElevatedButton(onPressed: onPressed, child: Text('SAFE ALERT'))
         ]
       )
     );

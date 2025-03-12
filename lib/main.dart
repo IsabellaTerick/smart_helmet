@@ -7,6 +7,10 @@ import './crash_msg.dart';
 import './crash_safe_btns.dart';
 import './add_contact_btn.dart';
 import './emergency_contact_tbl.dart';
+import './bluetooth_service.dart';
+import './led_controller.dart';
+import './connect_btn.dart';
+import './msg_display.dart';
 
 //Function to generate a random unique id for each device the app is downloaded on
 Future<String> getOrGenDeviceId() async {
@@ -75,10 +79,22 @@ class _MyHomePageState extends State<MyHomePage> {
     print("New Contact: $name $num");
   }
 
-  //Method for bluetooth connection
-  void bluetoothConnect() {
-     print('Bluetooth button pressed');
+  final BluetoothService _bluetoothService = BluetoothService();
+  late final LEDController _ledController;
+  String _message = "No message received";
+  bool _isConnected = false; // Track connection state
+
+
+  @override
+  void initState() {
+    super.initState();
+    _ledController = LEDController(_bluetoothService);
+    _bluetoothService.setMessageListener((message) {
+      setState(() => _message = message);
+    });
   }
+  
+}
 
   @override
   Widget build(BuildContext context) {
@@ -104,9 +120,10 @@ class _MyHomePageState extends State<MyHomePage> {
               mainAxisAlignment: MainAxisAlignment.center,
               children: <Widget>[
                 CrashMsg(),
-                CrashSafeBtns(),
+                CrashSafeBtns(onPressed: _ledController.toggleLED),
                 EmergencyContactTbl(),
                 AddContactBtn(),
+                //MessageDisplay(message: _message),
               ],
             ),
           ),
@@ -115,3 +132,8 @@ class _MyHomePageState extends State<MyHomePage> {
     );
   }
 }
+      
+//       ConnectBtn(
+//               onPressed: _isConnected ? null : _bluetoothService.scanAndConnect,
+//               isConnected: _isConnected,
+//             ),
