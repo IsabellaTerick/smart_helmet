@@ -92,6 +92,9 @@ class _MyHomePageState extends State<MyHomePage> {
       appBar: AppBar(
         backgroundColor: Colors.indigo[200],
         title: Text(widget.title),
+        actions: [
+          IconButton(onPressed: () => {}, icon: Icon(Icons.bluetooth), color: Colors.blue),
+        ],
       ),
       body: Stack(
         children: <Widget>[
@@ -105,17 +108,6 @@ class _MyHomePageState extends State<MyHomePage> {
                 EmergencyContactTbl(),
                 AddContactBtn(),
               ],
-            ),
-          ),
-          // Bluetooth Button in the top-right corner of the main body
-          Positioned(
-            right: 10.0,
-            top: 10.0,
-            child: IconButton(
-              icon: Icon(Icons.bluetooth),
-              onPressed: bluetoothConnect, // Your Bluetooth function
-              iconSize: 30.0, // You can adjust the size of the icon
-              color: Colors.blue, // You can change the color of the icon
             ),
           ),
         ],
