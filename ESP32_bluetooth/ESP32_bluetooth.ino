@@ -3,125 +3,126 @@
 #include <BLEUtils.h>
 #include <BLE2902.h>
 
-// Pin definitions
-const int BUTTON_PIN = 5; // GPIO pin connected to the physical button
-const int LED_PIN = 2;    // GPIO pin connected to the internal LED (or external LED)
+#define BUTTON_PIN 2  // GPIO pin for the button
+#define LED_PIN 4     // GPIO pin for the LED
 int brightness = 0;  // how bright the LED is
 int fadeAmount = 5;  // how many points to fade the LED by
 
-// Define UUIDs for the BLE service and characteristic
-#define SERVICE_UUID "4fafc201-1fb5-459e-8fcc-c5c9c331914b"         // Service UUID
-#define CHARACTERISTIC_UUID "beb5483e-36e1-4688-b7f5-ea07361b26a8" // Characteristic UUID
+BLEServer *pServer = NULL;
+BLECharacteristic *pCharacteristic = NULL;
 
-// Global variables
-BLECharacteristic *pCharacteristic;
-BLEServer *pServer;
-bool ledState = false; // Tracks the state of the LED
-bool buttonPressed = false; // Tracks whether the button was pressed
+bool deviceConnected = false;
+bool oldButtonState = HIGH; // Assume button is not pressed initially
+bool ledState = LOW;        // Initial state of the LED (off)
+int button_presses = 0;
 
-/**
- * Server Callbacks
- * These functions handle client connection and disconnection events.
- */
+// UUIDs for the service and characteristic
+#define SERVICE_UUID        "4fafc201-1fb5-459e-8fcc-c5c9c331914b"
+#define CHARACTERISTIC_UUID "beb5483e-36e1-4688-b7f5-ea07361b26a8"
+
 class MyServerCallbacks : public BLEServerCallbacks {
-  void onConnect(BLEServer *pServer) {
-    Serial.println("Client connected");
-  }
+    void onConnect(BLEServer* pServer) {
+      deviceConnected = true;
+      Serial.println("Device connected!");
+    };
 
-  void onDisconnect(BLEServer *pServer) {
-    Serial.println("Client disconnected");
-    pServer->startAdvertising(); // Restart advertising to allow reconnection
-  }
+    void onDisconnect(BLEServer* pServer) {
+      deviceConnected = false;
+      Serial.println("Device disconnected!");
+      // Restart advertising after disconnection
+      BLEDevice::startAdvertising();
+      Serial.println("Restarted BLE advertising...");
+    }
 };
 
-/**
- * Characteristic Callbacks
- * These functions handle data written to the characteristic by the Flutter app.
- */
-class MyCallbacks : public BLECharacteristicCallbacks {
-  void onWrite(BLECharacteristic *pCharacteristic) {
-    String value = pCharacteristic->getValue(); // Get the data written by the Flutter app
+class MyCharacteristicCallbacks : public BLECharacteristicCallbacks {
+    void onWrite(BLECharacteristic *pCharacteristic) {
+      String value = pCharacteristic->getValue(); // Get the data written by the Flutter app
 
-    if (value.length() > 0) {
-      Serial.print("Received data: ");
-      Serial.println(value); // Print the received data
+      if (value.length() > 0) {
+        Serial.print("Received data: ");
+        for (int i = 0; i < value.length(); i++) {
+          Serial.print((char)value[i]);
+        }
+        Serial.println();
 
-      // Handle the "TOGGLE_LED" command
-      if (value == "TOGGLE_LED") {
-        ledState = !ledState; // Toggle the LED state
-        digitalWrite(LED_PIN, ledState ? HIGH : LOW); // Update the LED
-        Serial.println(ledState ? "LED turned ON" : "LED turned OFF");
-
-        // Optionally, send a response back to the Flutter app
-        pCharacteristic->setValue(ledState ? "LED_ON" : "LED_OFF");
-        pCharacteristic->notify();
+        // Check if the received message is "Toggle LED"
+        if (value == "Toggle LED") {
+          ledState = !ledState; // Toggle the LED state
+          digitalWrite(LED_PIN, ledState); // Update the LED pin
+          Serial.println(ledState ? "LED turned ON" : "LED turned OFF");
+        } else {
+          Serial.println("Unknown command received.");
+        }
       }
     }
-  }
 };
 
-/**
- * Setup Function
- * Initializes the ESP32, sets up BLE, and configures pins.
- */
 void setup() {
-  // Initialize serial communication for debugging
   Serial.begin(115200);
+  Serial.println("Initializing BLE...");
 
-  // Configure pins
-  pinMode(BUTTON_PIN, INPUT_PULLUP); // Use internal pull-up resistor for the button
-  pinMode(LED_PIN, OUTPUT);          // Set the LED pin as output
-  digitalWrite(LED_PIN, LOW);        // Turn off the LED initially
+  // Configure the button pin as input with pull-up resistor
+  pinMode(BUTTON_PIN, INPUT_PULLUP);
+
+  // Configure the LED pin as output
+  pinMode(LED_PIN, OUTPUT);
+  digitalWrite(LED_PIN, ledState); // Set initial LED state
 
   // Initialize BLE
-  BLEDevice::init("ESP32_BLE"); // Name of the BLE device
+  BLEDevice::init("ESP32_BLE");
   pServer = BLEDevice::createServer();
-  pServer->setCallbacks(new MyServerCallbacks()); // Set server callbacks
+  pServer->setCallbacks(new MyServerCallbacks());
 
-  // Create a BLE service
+  // Create the BLE service
   BLEService *pService = pServer->createService(SERVICE_UUID);
 
-  // Create a BLE characteristic
+  // Create the BLE characteristic
   pCharacteristic = pService->createCharacteristic(
-      CHARACTERISTIC_UUID,
-      BLECharacteristic::PROPERTY_READ |   // Allow reading the characteristic
-          BLECharacteristic::PROPERTY_WRITE | // Allow writing to the characteristic
-          BLECharacteristic::PROPERTY_NOTIFY); // Allow sending notifications
+                      CHARACTERISTIC_UUID,
+                      BLECharacteristic::PROPERTY_READ   |
+                      BLECharacteristic::PROPERTY_WRITE  |
+                      BLECharacteristic::PROPERTY_NOTIFY
+                    );
 
-  pCharacteristic->addDescriptor(new BLE2902()); // Add a descriptor for the characteristic
-  pCharacteristic->setCallbacks(new MyCallbacks()); // Set characteristic callbacks
-
-  // Start the service
+  // Add a descriptor to the characteristic
+  pCharacteristic->addDescriptor(new BLE2902());
+  pCharacteristic->setCallbacks(new MyCharacteristicCallbacks()); // Set callbacks for write events
   pService->start();
 
-  // Start advertising the BLE server
+  // Start advertising
   BLEAdvertising *pAdvertising = BLEDevice::getAdvertising();
   pAdvertising->addServiceUUID(SERVICE_UUID);
   pAdvertising->setScanResponse(true);
-  pAdvertising->start();
-
-  Serial.println("BLE server started and advertising...");
+  pAdvertising->setMinPreferred(0x06);  // Functions that help with iPhone connections
+  pAdvertising->setMinPreferred(0x12);
+  BLEDevice::startAdvertising();
+  Serial.println("BLE advertising started.");
 }
 
-/**
- * Loop Function
- * Continuously checks for button presses and sends notifications to the Flutter app.
- */
 void loop() {
-  // Check if the physical button is pressed
-  if (digitalRead(BUTTON_PIN) == LOW) { // Button pressed (LOW because of pull-up resistor)
-    if (!buttonPressed) { // Debounce: Ensure we only trigger once per press
-      buttonPressed = true;
-
-      // Notify the Flutter app that the button was pressed
-      pCharacteristic->setValue("BUTTON_PRESSED");
-      pCharacteristic->notify();
-      Serial.println("Button pressed, notification sent to Flutter app.");
-    }
-  } else {
-    buttonPressed = false; // Reset the button state when released
+  // Print a debug message every second to confirm the ESP32 is running
+  static unsigned long lastTime = 0;
+  if (millis() - lastTime > 1000) {
+    // Serial.println("ESP32 is advertising...");
+    lastTime = millis();
   }
 
-  // Add a small delay to avoid excessive CPU usage
-  delay(10);
+  // Read the button state
+  bool buttonState = digitalRead(BUTTON_PIN);
+
+  // If the button is pressed and was not pressed before
+  if (buttonState == LOW && oldButtonState == HIGH) {
+    Serial.println("Button pressed!");
+    if (deviceConnected) {
+      pCharacteristic->setValue("Button Pressed!");
+      pCharacteristic->notify();
+      Serial.println("Notification sent: Button Pressed!");
+    }
+  }
+
+  // Update the old button state
+  oldButtonState = buttonState;
+
+  delay(10); // Small delay to debounce the button
 }

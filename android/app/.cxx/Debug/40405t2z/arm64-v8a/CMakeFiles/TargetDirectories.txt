@@ -1,0 +1,2 @@
+C:/Users/danim/OneDrive/Documents/GitHub/smart_helmet/android/app/.cxx/Debug/40405t2z/arm64-v8a/CMakeFiles/edit_cache.dir
+C:/Users/danim/OneDrive/Documents/GitHub/smart_helmet/android/app/.cxx/Debug/40405t2z/arm64-v8a/CMakeFiles/rebuild_cache.dir
