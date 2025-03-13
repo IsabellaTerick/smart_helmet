@@ -66,24 +66,15 @@ class MyHomePage extends StatefulWidget {
   final String title;
 
   @override
-  State<MyHomePage> createState() => _MyHomePageState();
+  State<MyHomePage> createState() => MyHomePageState();
 }
 
-class _MyHomePageState extends State<MyHomePage> {
-  //List of contacts for current device
-  List<Map<String, String>> contacts = [];
-
-  //Method to add a new contact
-  void addNewContact(String name, String num) {
-    contacts.add({"name": name, "phoneNum": num});
-    print("New Contact: $name $num");
-  }
+class MyHomePageState extends State<MyHomePage> {
 
   final BluetoothService _bluetoothService = BluetoothService();
   late final LEDController _ledController;
   String _message = "No message received";
   bool _isConnected = false; // Track connection state
-
 
   @override
   void initState() {
@@ -94,12 +85,9 @@ class _MyHomePageState extends State<MyHomePage> {
     });
   }
 
-
   @override
   Widget build(BuildContext context) {
     // This method is rerun every time setState is called, for instance as done
-    // by the _incrementCounter method above.
-    //
     // The Flutter framework has been optimized to make rerunning build methods
     // fast, so that you can just rebuild anything that needs updating rather
     // than having to individually change instances of widgets.
@@ -108,12 +96,12 @@ class _MyHomePageState extends State<MyHomePage> {
         backgroundColor: Colors.indigo[200],
         title: Text(widget.title),
         actions: [
-          IconButton(onPressed: () => {}, icon: Icon(Icons.bluetooth), color: Colors.blue),
+          ConnectBtn(onPressed: _isConnected ? null : _bluetoothService.scanAndConnect, isConnected: _isConnected,)
+          //IconButton(onPressed: () => {}, icon: Icon(Icons.bluetooth), color: Colors.blue),
         ],
       ),
       body: Stack(
         children: <Widget>[
-          // Your main content goes here
           Center(
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,

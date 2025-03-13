@@ -12,17 +12,22 @@ class ConnectBtn extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return ElevatedButton(
+    return IconButton(
+      icon: Icon(Icons.bluetooth),
       onPressed: onPressed,
-      style: ElevatedButton.styleFrom(
-        backgroundColor: isConnected ? Colors.blue.shade800 : Colors.lightBlue,
-        foregroundColor: Colors.white,
-        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-      ),
-      child: Text(
-        isConnected ? "Connected" : "Connect to ESP32",
-        style: const TextStyle(fontSize: 16),
-      ),
+      color: isConnected ? Colors.blue: Colors.white54,
     );
+    // return ElevatedButton(
+    //   onPressed: onPressed,
+    //   style: ElevatedButton.styleFrom(
+    //     backgroundColor: isConnected ? Colors.blue.shade800 : Colors.lightBlue,
+    //     foregroundColor: Colors.white,
+    //     padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+    //   ),
+    //   child: Text(
+    //     isConnected ? "Connected" : "Connect to ESP32",
+    //     style: const TextStyle(fontSize: 16),
+    //   ),
+    // );
   }
 }
