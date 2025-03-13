@@ -15,7 +15,7 @@ class ConnectBtn extends StatelessWidget {
     return IconButton(
       icon: Icon(Icons.bluetooth),
       onPressed: onPressed,
-      color: isConnected ? Colors.blue: Colors.white54,
+      color: isConnected ? Colors.blue: Colors.black45,
     );
     // return ElevatedButton(
     //   onPressed: onPressed,

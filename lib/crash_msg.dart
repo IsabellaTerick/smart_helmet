@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:smart_helmet_v4/main.dart';
 
 class CrashMsg extends StatefulWidget {
-  const CrashMsg({super.key});
+  final String deviceId;
+  const CrashMsg({super.key, required this.deviceId});
 
   //Getting current state of text message to update
   @override
@@ -17,12 +19,18 @@ class CrashMsgState extends State<CrashMsg> {
   @override
   void initState() {
     super.initState();
-    loadCrashMsg();
+    initCrashMsg();
+  }
+
+  void initCrashMsg() async {
+    String id = await getOrGenDeviceId();
+    loadCrashMsg(id);
   }
 
   //Getting currently database stored crashMsg
-  void loadCrashMsg() async {
-    DocumentSnapshot doc = await firestore.collection('settings').doc('crash_msg').get();
+  void loadCrashMsg(String deviceId) async {
+    DocumentSnapshot doc = await firestore.collection(deviceId).doc('settings').get();
+    //DocumentSnapshot doc = await firestore.collection('settings').doc('crash_msg').get();
     if (doc.exists) {
       setState(() {
         crashMsgCtrl.text = doc['message'] ?? '';
@@ -37,7 +45,7 @@ class CrashMsgState extends State<CrashMsg> {
       newMsg = 'Crash Detected!';
     }
 
-    await firestore.collection('settings').doc('crash_msg').set({'message': newMsg});
+    await firestore.collection(widget.deviceId).doc('settings').set({'message': newMsg});
     print("new msg $newMsg");
 
     setState(() {

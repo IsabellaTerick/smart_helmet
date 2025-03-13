@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:smart_helmet_v4/main.dart';
 
 //Method to have popup for new contact dialog
 void addContactDialog(BuildContext context) {
@@ -44,8 +46,14 @@ void addContactDialog(BuildContext context) {
 
               //Error checking before adding to database
               if (name.isNotEmpty && num.isNotEmpty) {
+                //Getting deviceId
+                String deviceId = await getOrGenDeviceId();
+
+                CollectionReference contacts = FirebaseFirestore.instance
+                  .collection(deviceId).doc('contacts').collection('list');
+
                 //Adding new contact to database
-                await FirebaseFirestore.instance.collection('contacts').add({
+                await contacts.add({
                   'name': name,
                   'phoneNumber': num,
                   'timestamp': FieldValue.serverTimestamp(),

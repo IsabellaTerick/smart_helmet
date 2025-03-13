@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:smart_helmet_v4/settings_btn.dart';
 import 'firebase_options.dart';
 import 'package:uuid/uuid.dart';
 import './crash_msg.dart';
@@ -11,6 +12,7 @@ import './bluetooth_service.dart';
 import './led_controller.dart';
 import './connect_btn.dart';
 import './msg_display.dart';
+
 
 //Function to generate a random unique id for each device the app is downloaded on
 Future<String> getOrGenDeviceId() async {
@@ -24,6 +26,7 @@ Future<String> getOrGenDeviceId() async {
     await prefs.setString('device_id', deviceId);
   }
 
+  print("deviceId: $deviceId");
   //Return device id
   return deviceId;
 }
@@ -34,9 +37,9 @@ void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp();
 
-  //Getting device id
-  String deviceId = await getOrGenDeviceId();
-  print('Device ID: $deviceId');
+  // //Getting device id
+  // String? deviceId = await getOrGenDeviceId();
+  // print('Device ID: $deviceId');
 
   //Run app
   runApp(const MyApp());
@@ -96,26 +99,32 @@ class MyHomePageState extends State<MyHomePage> {
         backgroundColor: Colors.indigo[200],
         title: Text(widget.title),
         actions: [
-          ConnectBtn(onPressed: _isConnected ? null : _bluetoothService.scanAndConnect, isConnected: _isConnected,)
+          ConnectBtn(onPressed: _isConnected ? null : _bluetoothService.scanAndConnect, isConnected: _isConnected,),
+          EditSettingsBtn()
           //IconButton(onPressed: () => {}, icon: Icon(Icons.bluetooth), color: Colors.blue),
         ],
       ),
-      body: Stack(
-        children: <Widget>[
-          Center(
+      body: FutureBuilder<String>(
+        future: getOrGenDeviceId(),
+        builder: (context, snapshot) {
+          //Getting deviceId
+          final String deviceId = snapshot.data!;
+
+          //Returning home page
+          return Center(
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: <Widget>[
-                CrashMsg(),
+                CrashMsg(deviceId: deviceId),
                 CrashSafeBtns(onPressed: _ledController.toggleLED),
                 EmergencyContactTbl(),
                 AddContactBtn(),
                 //MessageDisplay(message: _message),
               ],
             ),
-          ),
-        ],
-      ),
+          );
+        }
+      )
     );
   }
 }
