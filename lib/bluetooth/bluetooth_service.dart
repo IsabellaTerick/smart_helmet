@@ -6,8 +6,12 @@ import 'package:flutter/foundation.dart' show defaultTargetPlatform, TargetPlatf
 class BluetoothService {
   fb.BluetoothDevice? _connectedDevice; // Use fb prefix for flutter_blue_plus classes
   fb.BluetoothCharacteristic? _characteristic;
-  final _connectionController = StreamController<bool>.broadcast(); // Track connection state
+  final StreamController<bool> _connectionController =
+  StreamController<bool>.broadcast(); // Track connection state
   bool _isConnected = false;
+
+  // Public getter for the connection state stream
+  Stream<bool> get connectionStateStream => _connectionController.stream;
 
   // Callback to notify listeners of new messages
   Function(String)? _messageListener;
@@ -41,10 +45,12 @@ class BluetoothService {
             print("Connected to ${_connectedDevice!.platformName}");
 
             // Discover services
-            List<fb.BluetoothService> services = await _connectedDevice!.discoverServices();
+            List<fb.BluetoothService> services =
+            await _connectedDevice!.discoverServices();
             for (var service in services) {
               for (var char in service.characteristics) {
-                if (char.uuid.toString() == "beb5483e-36e1-4688-b7f5-ea07361b26a8") {
+                if (char.uuid.toString() ==
+                    "beb5483e-36e1-4688-b7f5-ea07361b26a8") {
                   _characteristic = char;
 
                   // Enable notifications
@@ -55,7 +61,8 @@ class BluetoothService {
                     print("Received notification: $message");
                   });
 
-                  print("Notifications enabled for characteristic: UUID=${char.uuid}");
+                  print(
+                      "Notifications enabled for characteristic: UUID=${char.uuid}");
                 }
               }
             }

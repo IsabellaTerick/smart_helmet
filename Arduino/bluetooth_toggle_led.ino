@@ -101,13 +101,6 @@ void setup() {
 }
 
 void loop() {
-  // Print a debug message every second to confirm the ESP32 is running
-  static unsigned long lastTime = 0;
-  if (millis() - lastTime > 1000) {
-    // Serial.println("ESP32 is advertising...");
-    lastTime = millis();
-  }
-
   // Read the button state
   bool buttonState = digitalRead(BUTTON_PIN);
 
