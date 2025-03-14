@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'add_contact_btn.dart';
+import './add_contact_btn.dart';
 import 'package:smart_helmet_v4/main.dart';
 
 class EmergencyContactTbl extends StatelessWidget {

@@ -1,5 +1,5 @@
 import 'package:flutter_blue_plus/flutter_blue_plus.dart' as fb;
-import 'bluetooth_service.dart';
+import '../bluetooth/bluetooth_service.dart';
 import 'dart:convert';
 
 class LEDController {
