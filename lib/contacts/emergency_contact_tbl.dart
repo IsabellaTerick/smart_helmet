@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import './add_contact_btn.dart';
-import 'package:smart_helmet_v4/main.dart';
+import '../services/device_id_service.dart';
 
 class EmergencyContactTbl extends StatelessWidget {
   EmergencyContactTbl({super.key});
@@ -33,7 +33,7 @@ class EmergencyContactTbl extends StatelessWidget {
                 padding: EdgeInsets.only(bottom: 15.0),
                 child: Text(
                   'Emergency Contacts:',
-                    style: TextStyle(fontFamily: 'Nunito', fontSize: 20)
+                    style: TextStyle(fontFamily: 'Nunito', fontSize: 20, fontWeight: FontWeight.bold)
                 ),
               ),
             Container(

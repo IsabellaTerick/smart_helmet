@@ -1,58 +1,31 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
-import 'package:shared_preferences/shared_preferences.dart';
-import 'package:smart_helmet_v4/settings_btn.dart';
-import 'firebase_options.dart';
-import 'package:uuid/uuid.dart';
-
+import './services/device_id_service.dart';
 import './bluetooth/bluetooth_service.dart';
-import 'bluetooth/bluetooth_btn.dart';
-
-import 'crash/crash_msg.dart';
+import './bluetooth/bluetooth_btn.dart';
+import './settings/settings_btn.dart';
+import './crash/crash_msg.dart';
 import './crash/crash_safe_btns.dart';
-import './other/led_controller.dart';
-
-import 'contacts/emergency_contact_tbl.dart';
+import './contacts/emergency_contact_tbl.dart';
 import './contacts/add_contact_btn.dart';
+import './other/bt_msg_display.dart';
+import './crash/mode_synchronizer.dart';
+import 'firebase_options.dart';
 
-import 'other/bt_msg_display.dart';
-
-
-//Function to generate a random unique id for each device the app is downloaded on
-Future<String> getOrGenDeviceId() async {
-  SharedPreferences prefs = await SharedPreferences.getInstance();
-  String? deviceId = prefs.getString('device_id');
-
-//Generate unique device id if no id found
-  if (deviceId == null) {
-    var uuid = Uuid();
-    deviceId = uuid.v4();
-    await prefs.setString('device_id', deviceId);
-  }
-
-  print("deviceId: $deviceId");
-  //Return device id
-  return deviceId;
-}
-
-//Main app code
+// Main app code
 void main() async {
-//Firebase setup
+  // Firebase setup
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp();
 
-  // //Getting device id
-  // String? deviceId = await getOrGenDeviceId();
-  // print('Device ID: $deviceId');
-
-//Run app
+  // Run app
   runApp(const MyApp());
 }
 
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
 
-// This widget is the root of your application.
+  // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
@@ -78,20 +51,20 @@ class MyHomePage extends StatefulWidget {
 
 class MyHomePageState extends State<MyHomePage> {
   final BluetoothService _bluetoothService = BluetoothService();
-  late final LEDController _ledController;
+  late final ModeSynchronizer _modeSynchronizer;
 
   @override
   void initState() {
     super.initState();
-    _ledController = LEDController(_bluetoothService);
+    _modeSynchronizer = ModeSynchronizer(_bluetoothService); // Initialize ModeSynchronizer
   }
 
   @override
   Widget build(BuildContext context) {
-// This method is rerun every time setState is called, for instance as done
-// The Flutter framework has been optimized to make rerunning build methods
-// fast, so that you can just rebuild anything that needs updating rather
-// than having to individually change instances of widgets.
+    // This method is rerun every time setState is called, for instance as done
+    // The Flutter framework has been optimized to make rerunning build methods
+    // fast, so that you can just rebuild anything that needs updating rather
+    // than having to individually change instances of widgets.
     return Scaffold(
       appBar: AppBar(
         backgroundColor: Colors.indigo[200],
@@ -102,27 +75,29 @@ class MyHomePageState extends State<MyHomePage> {
         ],
       ),
       body: FutureBuilder<String>(
-        future: getOrGenDeviceId(),
+        future: getOrGenDeviceId(), // Retrieve device ID from the new service
         builder: (context, snapshot) {
-          //Getting deviceId
+          // Getting device ID
+          if (!snapshot.hasData) {
+            return const Center(child: CircularProgressIndicator());
+          }
           final String deviceId = snapshot.data!;
 
-          //Returning home page
+          // Returning home page
           return Center(
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: <Widget>[
                 CrashMsg(deviceId: deviceId),
-                CrashSafeBtns( toggleLED: () {}, ),
-                // CrashSafeBtns(onPressed: _ledController.toggleLED),
+                CrashSafeBtns(modeSynchronizer: _modeSynchronizer), // Pass ModeSynchronizer
                 EmergencyContactTbl(),
                 AddContactBtn(),
-//MessageDisplay(message: _message),
+                // MessageDisplay(message: _message),
               ],
             ),
           );
-        }
-      )
+        },
+      ),
     );
   }
 }

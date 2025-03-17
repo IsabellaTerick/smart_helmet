@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import './edit_settings_popup.dart';
+import 'edit_settings_popup.dart';
 
 class EditSettingsBtn extends StatelessWidget {
   const EditSettingsBtn({super.key});

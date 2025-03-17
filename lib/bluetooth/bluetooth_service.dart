@@ -7,7 +7,7 @@ class BluetoothService {
   fb.BluetoothDevice? _connectedDevice; // Use fb prefix for flutter_blue_plus classes
   fb.BluetoothCharacteristic? _characteristic;
   final StreamController<bool> _connectionController =
-  StreamController<bool>.broadcast(); // Track connection state
+    StreamController<bool>.broadcast(); // Track connection state
   bool _isConnected = false;
 
   // Public getter for the connection state stream
@@ -44,6 +44,9 @@ class BluetoothService {
             _updateConnectionStatus(true); // Update connection status
             print("Connected to ${_connectedDevice!.platformName}");
 
+            // Listen for disconnection events
+            _listenForDisconnection();
+
             // Discover services
             List<fb.BluetoothService> services =
             await _connectedDevice!.discoverServices();
@@ -60,9 +63,6 @@ class BluetoothService {
                     _notifyMessageListener(message);
                     print("Received notification: $message");
                   });
-
-                  print(
-                      "Notifications enabled for characteristic: UUID=${char.uuid}");
                 }
               }
             }
@@ -76,6 +76,18 @@ class BluetoothService {
         }
       }
     });
+  }
+
+  // Listen for disconnection events
+  void _listenForDisconnection() {
+    if (_connectedDevice != null) {
+      _connectedDevice!.connectionState.listen((state) {
+        if (state == fb.BluetoothConnectionState.disconnected) {
+          _updateConnectionStatus(false); // Update connection status to false
+          print("Device disconnected.");
+        }
+      });
+    }
   }
 
   Future<void> _requestPermissions() async {

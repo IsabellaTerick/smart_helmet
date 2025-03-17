@@ -2,12 +2,14 @@ import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:smart_helmet_v4/main.dart';
+import '../services/device_id_service.dart';
+
 
 //Method to have popup to edit settings
 void editUserSettings(BuildContext context) {
   //Controllers to edit dialog
   TextEditingController usernameCtrl = TextEditingController();
+
 
   //Popup
   showDialog(
