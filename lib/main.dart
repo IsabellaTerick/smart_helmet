@@ -52,19 +52,11 @@ class MyHomePage extends StatefulWidget {
 class MyHomePageState extends State<MyHomePage> {
   final BluetoothService _bluetoothService = BluetoothService();
   late final ModeSynchronizer _modeSynchronizer;
-  String _message = "No message received yet";
 
   @override
   void initState() {
     super.initState();
     _modeSynchronizer = ModeSynchronizer(_bluetoothService); // Initialize ModeSynchronizer
-
-    // Set up a listener for incoming messages
-    _bluetoothService.setMessageListener((message) {
-      setState(() {
-        _message = message; // Update the message state
-      });
-    });
   }
 
   @override
@@ -98,9 +90,9 @@ class MyHomePageState extends State<MyHomePage> {
               children: <Widget>[
                 CrashMsg(deviceId: deviceId),
                 CrashSafeBtns(modeSynchronizer: _modeSynchronizer), // Pass ModeSynchronizer
-                MessageDisplay(message: _message),
                 EmergencyContactTbl(),
                 AddContactBtn(),
+                // MessageDisplay(message: _message),
               ],
             ),
           );

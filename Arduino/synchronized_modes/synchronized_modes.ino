@@ -19,19 +19,12 @@ bool oldButtonState = LOW; // Assume button is not pressed initially
 String currentMode = "safe"; // Initial mode is safe
 bool ledState = LOW;         // Initial state of the LED (off)
 
-// BT disconnected status LED flashing
-unsigned long previousMillis = 0;
-const long flashInterval = 1000;  // 500ms on, 500ms off = 1 second period
-bool btStatusLedState = LOW;     // Status LED state
-
 class MyServerCallbacks : public BLEServerCallbacks {
     void onConnect(BLEServer* pServer) {
       deviceConnected = true;
       digitalWrite(BT_STATUS_PIN, HIGH); // Set pin 5 high when connected
       Serial.println("Device connected!");
 
-      //// TODO: Maybe add a delay
-      delay(5000);
       // Send the current mode to the Flutter app after connection
       if (pCharacteristic != NULL) {
         pCharacteristic->setValue(currentMode.c_str());
@@ -127,18 +120,6 @@ void setup() {
 }
 
 void loop() {
-  // Handle BT status LED flashing when disconnected
-  unsigned long currentMillis = millis();
-
-  if (!deviceConnected) {
-    // Flash the BT status LED when not connected
-    if (currentMillis - previousMillis >= flashInterval) {
-      previousMillis = currentMillis;
-      btStatusLedState = !btStatusLedState;
-      digitalWrite(BT_STATUS_PIN, btStatusLedState);
-    }
-  }
-
   // Read the button state
   bool buttonState = digitalRead(BUTTON_PIN);
 
