@@ -4,7 +4,7 @@ BLEServer *pServer = NULL;
 BLECharacteristic *pCharacteristic = NULL;
 
 bool deviceConnected = false;
-String currentMode = "safe"; // Initial mode is safe
+extern String currentMode;
 
 // Callbacks for BLE server events
 class MyServerCallbacks : public BLEServerCallbacks {
