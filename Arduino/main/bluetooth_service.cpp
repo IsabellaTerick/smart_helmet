@@ -14,6 +14,7 @@ class MyServerCallbacks : public BLEServerCallbacks {
 
       // Send the current mode to the Flutter app after connection
       if (pCharacteristic != NULL) {
+        delay(5000);
         pCharacteristic->setValue(currentMode.c_str());
         pCharacteristic->notify();
         Serial.print("Connection mode sent to app: ");

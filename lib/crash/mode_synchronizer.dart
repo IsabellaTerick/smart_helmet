@@ -19,7 +19,7 @@ class ModeSynchronizer {
     _setupMessageListener();
   }
 
-  void _setupMessageListener() {
+  void _setupMessageListener() {,./m
     _bluetoothService.setMessageListener((message) {
       if (message == "safe" || message == "crash") {
         _updateMode(message);
