@@ -90,9 +90,9 @@ class MyHomePageState extends State<MyHomePage> {
               children: <Widget>[
                 CrashMsg(deviceId: deviceId),
                 CrashSafeBtns(modeSynchronizer: _modeSynchronizer), // Pass ModeSynchronizer
+                // MessageDisplay(message: _message),
                 EmergencyContactTbl(),
                 AddContactBtn(),
-                // MessageDisplay(message: _message),
               ],
             ),
           );
