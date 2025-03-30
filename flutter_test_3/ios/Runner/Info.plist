@@ -6,6 +6,8 @@
     <string>We need access to Bluetooth to communicate with the ESP32 device.</string>
     <key>NSBluetoothPeripheralUsageDescription</key>
     <string>We need access to Bluetooth to communicate with the ESP32 device.</string>
+    <key>NSLocationWhenInUseUsageDescription</key>
+    <string>We need your location to track movement in case of an emergency.</string>
     <key>CFBundleDevelopmentRegion</key>
 	<string>$(DEVELOPMENT_LANGUAGE)</string>
 	<key>CFBundleDisplayName</key>
