@@ -70,7 +70,6 @@ class ModeSynchronizer {
       _sendCrashAlert();
     } else if (mode == "safe") {
       _sendSafetyConfirmation();
-      twilioService.sendSafeSMS();
     } else {
       print("Unknown mode set.");
     }
@@ -85,10 +84,10 @@ class ModeSynchronizer {
       Position position = await LocationService.getCurrentPosition();
 
       // Store the location and set the flag
-      setState(() {
-        //// TODO: insert location into firebase
-        crashDetectedLocation = position;
-      });
+      // setState(() {
+      //   //// TODO: insert location into firebase
+      //   crashDetectedLocation = position;
+      // });
 
       // Start monitoring location changes
       positionStream = LocationService.getPositionStream().listen((Position currentPosition) {
