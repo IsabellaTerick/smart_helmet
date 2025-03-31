@@ -59,10 +59,6 @@ class ModeSynchronizer {
   }
 
   void setMode(String mode) async {
-    String? crashMsg = await firebaseService.getCrashMsg();
-    String? userName = await firebaseService.getUserName();
-    List<String?>? phoneNums = await firebaseService.getEmergencyContactNumbers();
-    List<String> contacts = (phoneNums ?? []) as List<String>;
 
     var msg = '';
     if (mode == "safe" || mode == "crash") {
@@ -70,22 +66,13 @@ class ModeSynchronizer {
       _updateMode(mode); // Update the local mode
     }
 
-    //Iterate through list of emergency contacts
-    if (phoneNums != null && contacts.isNotEmpty) {
-      for (String phoneNum in contacts) {
-        //Send out safe message
-        if (mode == "safe") {
-          msg = 'Alert from Smart Helmet: ${userName ?? "Unknown User"} has confirmed they are safe. No further action needed at this time.';
-          twilioService.sendSMS(phoneNum, msg);
-        }
-        //Send out crash message
-        else if (mode == "crash") {
-          msg = 'Alert from Smart Helmet: ${userName ?? "Unknown User"} has been involved in a crash. Please check on them and contact emergency. "${crashMsg ?? ""}"';
-          twilioService.sendSMS(phoneNum, msg);
-        } else {
-          print("Unknown mode set.");
-        }
-      }
+    if (mode == "crash") {
+      _sendCrashAlert();
+    } else if (mode == "safe") {
+      _sendSafetyConfirmation();
+      twilioService.sendSafeSMS();
+    } else {
+      print("Unknown mode set.");
     }
   }
 
@@ -110,8 +97,7 @@ class ModeSynchronizer {
 
       // Send the SMS
       String googleMapsUrl = "https://maps.google.com/?q=${position.latitude},${position.longitude}";
-      String message = "Crash detected at: $googleMapsUrl";
-      await TwilioService.sendSms(message);
+      twilioService.sendCrashSMS(googleMapsUrl);
     } catch (e) {
       print("Error: $e");
     }
@@ -122,8 +108,7 @@ class ModeSynchronizer {
     // Stop monitoring location changes
     positionStream?.cancel();
 
-    String safetyMessage = "Safety confirmed";
-    await TwilioService.sendSms(safetyMessage);
+    await twilioService.sendSafeSMS();
   }
 
   void _checkIfUserIsOnTheMove(Position currentPosition) async {
@@ -140,8 +125,7 @@ class ModeSynchronizer {
     // Check if the user has moved more than 402 meters (quarter mile)
     if (distanceInMeters > 402) {
       String googleMapsUrl = "https://maps.google.com/?q=${currentPosition.latitude},${currentPosition.longitude}";
-      String moveMessage = "User is on the move: $googleMapsUrl";
-      await TwilioService.sendSms(moveMessage);
+      await twilioService.sendUpdateSMS(googleMapsUrl);
 
       // Stop monitoring location changes
       positionStream?.cancel();

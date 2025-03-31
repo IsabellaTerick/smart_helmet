@@ -24,4 +24,10 @@ class TwilioService {
       print("SMS not sent.");
     }
   }
+
+  Future<void> sendCrashSMS(String link) async { }
+
+  Future<void> sendUpdateSMS(String link) async { }
+
+  Future<void> sendSafeSMS() async { }
 }
