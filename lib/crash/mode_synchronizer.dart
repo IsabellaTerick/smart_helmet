@@ -41,15 +41,4 @@ class ModeSynchronizer {
       _updateMode(mode); // Update the local mode
     }
   }
-
-  void sendMode(String mode) {
-    if (mode == "crash") {
-      _sendStatus.sendCrash();
-    } else if (mode == "safe") {
-      _sendStatus.sendSafe();
-    }
-    else {
-      print("Unknown mode send: $mode");
-    }
-  }
 }
