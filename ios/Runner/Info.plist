@@ -2,7 +2,13 @@
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
-	<key>CFBundleDevelopmentRegion</key>
+	<key>NSBluetoothAlwaysUsageDescription</key>
+    <string>We need access to Bluetooth to communicate with the ESP32 device.</string>
+    <key>NSBluetoothPeripheralUsageDescription</key>
+    <string>We need access to Bluetooth to communicate with the ESP32 device.</string>
+    <key>NSLocationWhenInUseUsageDescription</key>
+    <string>We need your location to track movement in case of an emergency.</string>
+    <key>CFBundleDevelopmentRegion</key>
 	<string>$(DEVELOPMENT_LANGUAGE)</string>
 	<key>CFBundleDisplayName</key>
 	<string>Smart Helmet V4</string>
