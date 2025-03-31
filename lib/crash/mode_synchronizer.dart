@@ -1,12 +1,8 @@
 import 'dart:async';
-import 'package:geolocator/geolocator.dart';
-import 'dart:async'; // Required for StreamSubscription
-
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:flutter_blue_plus/flutter_blue_plus.dart' as fb;
+import 'package:geolocator/geolocator.dart';
 import '../bluetooth/bluetooth_service.dart';
 import '../services/device_id_service.dart';
-import '../services/twilio_service.dart';
 import '../services/firebase_service.dart';
 import './send_status.dart';
 import '../services/location_service.dart';
@@ -16,14 +12,11 @@ class ModeSynchronizer {
   final BluetoothService _bluetoothService;
   final SendStatus _sendStatus;
 
-  //Twilio SMS
   FirebaseService firebaseService = FirebaseService();
   TwilioService twilioService = TwilioService();
 
   final StreamController<String> _modeController = StreamController<String>.broadcast();
   String _currentMode = "safe"; // Default mode is safe
-  Position? crashDetectedLocation;
-  StreamSubscription<Position>? positionStream;
 
   // Public getter for the mode stream
   Stream<String> get modeStream => _modeController.stream;
@@ -52,14 +45,13 @@ class ModeSynchronizer {
 
       // Store mode in Firestore under the settings document
       await FirebaseFirestore.instance
-        .collection(deviceId)
-        .doc('settings')
-        .set({'mode': newMode}, SetOptions(merge: true));
+          .collection(deviceId)
+          .doc('settings')
+          .set({'mode': newMode}, SetOptions(merge: true));
     }
   }
 
   void setMode(String mode) async {
-
     var msg = '';
     if (mode == "safe" || mode == "crash") {
       _sendStatus.sendMode(mode); // Send the mode to the microcontroller
@@ -70,7 +62,6 @@ class ModeSynchronizer {
       _sendCrashAlert();
     } else if (mode == "safe") {
       _sendSafetyConfirmation();
-      twilioService.sendSafeSMS();
     } else {
       print("Unknown mode set.");
     }
@@ -84,18 +75,15 @@ class ModeSynchronizer {
       // Get the user's current location
       Position position = await LocationService.getCurrentPosition();
 
-      // Store the location and set the flag
-      setState(() {
-        //// TODO: insert location into firebase
-        crashDetectedLocation = position;
-      });
+      // Store the crash location in LocationService
+      LocationService.crashDetectedLocation = position;
 
       // Start monitoring location changes
-      positionStream = LocationService.getPositionStream().listen((Position currentPosition) {
-        _checkIfUserIsOnTheMove(currentPosition);
+      LocationService.startMonitoringLocation((Position currentPosition) {
+        _handleUserMovement(currentPosition);
       });
 
-      // Send the SMS
+      // Send the crash SMS
       String googleMapsUrl = "https://maps.google.com/?q=${position.latitude},${position.longitude}";
       twilioService.sendCrashSMS(googleMapsUrl);
     } catch (e) {
@@ -104,33 +92,15 @@ class ModeSynchronizer {
   }
 
   Future<void> _sendSafetyConfirmation() async {
-
     // Stop monitoring location changes
-    positionStream?.cancel();
+    LocationService.stopMonitoringLocation();
 
-    await twilioService.sendSafeSMS();
+    // Send the safety confirmation SMS
+    twilioService.sendSafeSMS();
   }
 
-  void _checkIfUserIsOnTheMove(Position currentPosition) async {
-    if (_currentMode == "safe" || crashDetectedLocation == null) return;
-
-    // Calculate the distance between the crash location and the current location
-    double distanceInMeters = LocationService.calculateDistance(
-      crashDetectedLocation!.latitude,
-      crashDetectedLocation!.longitude,
-      currentPosition.latitude,
-      currentPosition.longitude,
-    );
-
-    // Check if the user has moved more than 402 meters (quarter mile)
-    if (distanceInMeters > 402) {
-      String googleMapsUrl = "https://maps.google.com/?q=${currentPosition.latitude},${currentPosition.longitude}";
-      await twilioService.sendUpdateSMS(googleMapsUrl);
-
-      // Stop monitoring location changes
-      positionStream?.cancel();
-    }
+  void _handleUserMovement(Position currentPosition) async {
+    String googleMapsUrl = "https://maps.google.com/?q=${currentPosition.latitude},${currentPosition.longitude}";
+    twilioService.sendUpdateSMS(googleMapsUrl);
   }
-
-
 }
