@@ -1,7 +1,9 @@
+import 'package:smart_helmet_v4/services/firebase_service.dart';
 import 'package:twilio_flutter/twilio_flutter.dart';
 
 class TwilioService {
   late TwilioFlutter twilioFlutter;
+  FirebaseService firebaseService = FirebaseService();
 
   // Constructor
   TwilioService() {
@@ -26,8 +28,21 @@ class TwilioService {
   }
 
   Future<void> sendCrashSMS(String link) async {
-    String message = "Crash detected at: $link";
-    await sendSMS('+14435548319', message); // Replace with recipient's number
+    String? crashMsg = await firebaseService.getCrashMsg();
+    String? userName = await firebaseService.getUserName();
+    List<String?>? phoneNums = await firebaseService.getEmergencyContactNumbers();
+    List<String> contacts = (phoneNums ?? []) as List<String>;
+
+    var msg = '';
+
+    //Iterate through list of emergency contacts
+    if (phoneNums != null && contacts.isNotEmpty) {
+      for (String phoneNum in contacts) {
+        //Send out crash message
+        msg = 'Alert from Smart Helmet: ${userName ?? "Unknown User"} has been involved in a crash. Please check on them and contact emergency. "${crashMsg ?? ""}"';
+        sendSMS(phoneNum, msg);
+      }
+    }
   }
 
   Future<void> sendUpdateSMS(String link) async {
@@ -36,7 +51,22 @@ class TwilioService {
   }
 
   Future<void> sendSafeSMS() async {
-    String message = "Safety confirmed.";
-    await sendSMS('+14435548319', message); // Replace with recipient's number
+    String? cMsg = await firebaseService.getCrashMsg();
+    String? userName = await firebaseService.getUserName();
+    List<String?>? phoneNums = await firebaseService.getEmergencyContactNumbers();
+    List<String> contacts = (phoneNums ?? []) as List<String>;
+
+    var msg = '';
+
+    //Iterate through list of emergency contacts
+    if (phoneNums != null && contacts.isNotEmpty) {
+      for (String phoneNum in contacts) {
+        var msg = '';
+        msg = 'Alert from Smart Helmet: ${userName ?? "Unknown User"} has confirmed their safety. No further action needed at this time';
+
+        //Send out safe message
+        sendSMS(phoneNum, msg);
+      }
+    }
   }
 }
