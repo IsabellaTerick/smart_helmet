@@ -3,7 +3,7 @@ import 'package:http/http.dart' as http;
 
 class SmsService {
   static const accountSid = "AC5ef8faf67b7a79889cefdfb6ac89d1e4";
-  static const authToken = "f0622a0e74cb6ed878da06b1495bc929";
+  static const authToken = "8ae583a38a332a0c0b0a2f37b2dd6fcf";
   static const twilioNumber = "+18667192795";                     // Toll-free number
   static const recipientNumber = "+14435548319";                  // Your phone number
 
