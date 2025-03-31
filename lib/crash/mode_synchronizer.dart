@@ -1,4 +1,6 @@
 import 'dart:async';
+import 'package:geolocator/geolocator.dart';
+import 'dart:async'; // Required for StreamSubscription
 
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter_blue_plus/flutter_blue_plus.dart' as fb;
@@ -7,6 +9,8 @@ import '../services/device_id_service.dart';
 import '../services/twilio_service.dart';
 import '../services/firebase_service.dart';
 import './send_status.dart';
+import '../services/location_service.dart';
+import '../services/twilio_service.dart';
 
 class ModeSynchronizer {
   final BluetoothService _bluetoothService;
@@ -18,6 +22,8 @@ class ModeSynchronizer {
 
   final StreamController<String> _modeController = StreamController<String>.broadcast();
   String _currentMode = "safe"; // Default mode is safe
+  Position? crashDetectedLocation;
+  StreamSubscription<Position>? positionStream;
 
   // Public getter for the mode stream
   Stream<String> get modeStream => _modeController.stream;
@@ -82,4 +88,65 @@ class ModeSynchronizer {
       }
     }
   }
+
+  Future<void> _sendCrashAlert() async {
+    try {
+      // Request location permissions
+      await LocationService.requestLocationPermission();
+
+      // Get the user's current location
+      Position position = await LocationService.getCurrentPosition();
+
+      // Store the location and set the flag
+      setState(() {
+        //// TODO: insert location into firebase
+        crashDetectedLocation = position;
+      });
+
+      // Start monitoring location changes
+      positionStream = LocationService.getPositionStream().listen((Position currentPosition) {
+        _checkIfUserIsOnTheMove(currentPosition);
+      });
+
+      // Send the SMS
+      String googleMapsUrl = "https://maps.google.com/?q=${position.latitude},${position.longitude}";
+      String message = "Crash detected at: $googleMapsUrl";
+      await TwilioService.sendSms(message);
+    } catch (e) {
+      print("Error: $e");
+    }
+  }
+
+  Future<void> _sendSafetyConfirmation() async {
+
+    // Stop monitoring location changes
+    positionStream?.cancel();
+
+    String safetyMessage = "Safety confirmed";
+    await TwilioService.sendSms(safetyMessage);
+  }
+
+  void _checkIfUserIsOnTheMove(Position currentPosition) async {
+    if (_currentMode == "safe" || crashDetectedLocation == null) return;
+
+    // Calculate the distance between the crash location and the current location
+    double distanceInMeters = LocationService.calculateDistance(
+      crashDetectedLocation!.latitude,
+      crashDetectedLocation!.longitude,
+      currentPosition.latitude,
+      currentPosition.longitude,
+    );
+
+    // Check if the user has moved more than 402 meters (quarter mile)
+    if (distanceInMeters > 402) {
+      String googleMapsUrl = "https://maps.google.com/?q=${currentPosition.latitude},${currentPosition.longitude}";
+      String moveMessage = "User is on the move: $googleMapsUrl";
+      await TwilioService.sendSms(moveMessage);
+
+      // Stop monitoring location changes
+      positionStream?.cancel();
+    }
+  }
+
+
 }

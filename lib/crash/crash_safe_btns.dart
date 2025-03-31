@@ -1,7 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:geolocator/geolocator.dart';
-import 'dart:async'; // Required for StreamSubscription
-import '../services/location_service.dart';
 import './mode_synchronizer.dart';
 import './crash_confirm_popup.dart';
 
@@ -17,9 +14,6 @@ class CrashSafeBtns extends StatefulWidget {
 class _CrashSafeBtnsState extends State<CrashSafeBtns> {
   // TODO: GET CURRENT MODE FROM DATABASE
   String _currentMode = "safe";
-  Position? crashDetectedLocation;
-  bool isCrashDetected = false; // Flag to track "Crash Detected"
-  StreamSubscription<Position>? positionStream;
 
   @override
   void initState() {
@@ -32,74 +26,12 @@ class _CrashSafeBtnsState extends State<CrashSafeBtns> {
   }
 
   Future<void> _handleCrashButtonPress(BuildContext context) async {
+    // Show the confirmation dialog
+    bool? userConfirmed = await showCrashConfirmationDialog(context);
 
-    try {
-      // Show the confirmation dialog
-      bool? userConfirmed = await showCrashConfirmationDialog(context);
-
-      // If the user confirmed, send the crash alert
-      if (userConfirmed == false) {
-        return;
-      }
-
+    // If the user confirmed, send the crash alert
+    if (userConfirmed == true) {
       widget.modeSynchronizer.setMode("crash");
-
-      // Request location permissions
-      await LocationService.requestLocationPermission();
-
-      // Get the user's current location
-      Position position = await LocationService.getCurrentPosition();
-
-      // Store the location and set the flag
-      setState(() {
-        crashDetectedLocation = position;
-        isCrashDetected = true;
-      });
-
-      // Start monitoring location changes
-      positionStream = LocationService.getPositionStream().listen((Position currentPosition) {
-        _checkIfUserIsOnTheMove(currentPosition);
-      });
-
-      // Send the SMS
-      String googleMapsUrl = "https://maps.google.com/?q=${position.latitude},${position.longitude}";
-      String message = "Crash detected at: $googleMapsUrl";
-      await TwilioService.sendSms(message);
-    } catch (e) {
-      print("Error: $e");
-    }
-  }
-
-  Future<void> _handleSafeButtonPress() async {
-    widget.modeSynchronizer.setMode("safe");
-
-    // Stop monitoring location changes
-    positionStream?.cancel();
-
-    // Send the SMS
-    String safetyMessage = "Safety confirmed.";
-    await TwilioService.sendSms(safetyMessage);
-  }
-
-  void _checkIfUserIsOnTheMove(Position currentPosition) async {
-    if (!isCrashDetected || crashDetectedLocation == null) return;
-
-    // Calculate the distance between the crash location and the current location
-    double distanceInMeters = LocationService.calculateDistance(
-      crashDetectedLocation!.latitude,
-      crashDetectedLocation!.longitude,
-      currentPosition.latitude,
-      currentPosition.longitude,
-    );
-
-    // Check if the user has moved more than 402 meters (quarter mile)
-    if (distanceInMeters > 402) {
-      String googleMapsUrl = "https://maps.google.com/?q=${currentPosition.latitude},${currentPosition.longitude}";
-      String moveMessage = "User is on the move: $googleMapsUrl";
-      await TwilioService.sendSms(moveMessage);
-
-      // Stop monitoring location changes
-      positionStream?.cancel();
     }
   }
 
@@ -142,7 +74,9 @@ class _CrashSafeBtnsState extends State<CrashSafeBtns> {
             height: 50,
             child: ElevatedButton(
               onPressed: _currentMode == "crash"
-                  ? () => _handleSafeButtonPress()
+                  ? () {
+                      widget.modeSynchronizer.setMode("safe");
+                    }
                   : null,
               style: ElevatedButton.styleFrom(
                 backgroundColor: Colors.lightGreen[700],
