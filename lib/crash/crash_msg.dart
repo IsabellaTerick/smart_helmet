@@ -50,17 +50,18 @@ class CrashMsgState extends State<CrashMsg> {
     String trimmedMsg = newMsg.trim();
 
     // Update Firestore with the trimmed message
-    await firestore.collection(widget.deviceId).doc('settings').set({'message': trimmedMsg});
-    print("New crash message: $trimmedMsg");
+    if (crashMsgCtrl.text != trimmedMsg) {
+      await firestore.collection(widget.deviceId).doc('settings').set({'message': trimmedMsg});
+      print("New crash message: $trimmedMsg");
 
-    // Trigger "Crash message updated!" notification
-    final notificationManager = Provider.of<NotificationManager>(context, listen: false);
-    notificationManager.showNotification(
-      message: "Crash message updated!",
-      backgroundColor: Colors.grey,
-      icon: Icons.edit_note,
-    );
-
+      // Trigger "Crash message updated!" notification
+      final notificationManager = Provider.of<NotificationManager>(context, listen: false);
+      notificationManager.showNotification(
+        message: "Crash message updated!",
+        backgroundColor: Colors.grey,
+        icon: Icons.edit_note,
+      );
+    }
     // Update the text field with the trimmed message
     setState(() {
       crashMsgCtrl.text = trimmedMsg;
