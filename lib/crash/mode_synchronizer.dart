@@ -48,8 +48,6 @@ class ModeSynchronizer {
       if (message == "safe" || message == "crash") {
         if (message != _currentMode) { // Prevent feedback loop
           setMode(context, message);
-        } else {
-          print("Received redundant mode update: $message");
         }
       }
     });
@@ -75,9 +73,9 @@ class ModeSynchronizer {
       if (mode != _currentMode) { ////
         _updateMode(mode); // Update the local mode
         if (mode == "crash") {
-          _sendCrashAlert(context);
+          _textCrashAlert(context);
         } else if (mode == "safe") {
-          _sendSafetyConfirmation(context);
+          _textSafetyConfirmation(context);
         }
       }
     }
@@ -96,7 +94,7 @@ class ModeSynchronizer {
     }
   }
 
-  Future<void> _sendCrashAlert(BuildContext context) async {
+  Future<void> _textCrashAlert(BuildContext context) async {
     try {
       // Check if SMS is enabled
       if (!(await _isSMSEnabled())) {
@@ -124,7 +122,7 @@ class ModeSynchronizer {
     }
   }
 
-  Future<void> _sendSafetyConfirmation(BuildContext context) async {
+  Future<void> _textSafetyConfirmation(BuildContext context) async {
     // Check if SMS is enabled
     if (!(await _isSMSEnabled())) {
       print("SMS is disabled. Skipping safety confirmation.");

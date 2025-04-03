@@ -51,10 +51,9 @@ class BluetoothService {
           icon: Icons.bluetooth_disabled,
         );
       }
+      _isConnected = connected;
+      _connectionController.add(connected);
     }
-
-    _isConnected = connected;
-    _connectionController.add(connected);
   }
 
   Future<void> scanAndConnect(BuildContext context) async {
@@ -89,7 +88,9 @@ class BluetoothService {
                   _characteristic!.lastValueStream.listen((value) {
                     final message = String.fromCharCodes(value);
                     _notifyMessageListener(context, message);
-                    print("Received notification: $message");
+                    if (message != '') {
+                      print("Received notification: $message");
+                    }
                   });
 
                   // Send initial mode ("crash") to the microcontroller
@@ -157,7 +158,7 @@ class BluetoothService {
       String? currentMode = await _firebaseService.getMode();
       print("Firebase mode: $currentMode");
       if (currentMode == "crash") {
-        await _sendStatus.sendCrash(); // Send "crash" to microcontroller
+        _sendStatus.sendCrash(); // Send "crash" to microcontroller
         print("Sent mode after Bluetooth Connection: Crash");
       }
     } catch (e) {
