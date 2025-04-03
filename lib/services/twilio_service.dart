@@ -1,4 +1,7 @@
-import 'package:smart_helmet_v4/services/firebase_service.dart';
+import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import '../notifications/notification_manager.dart'; // Import NotificationManager
+import '../services/firebase_service.dart';
 import 'package:twilio_flutter/twilio_flutter.dart';
 
 class TwilioService {
@@ -14,59 +17,156 @@ class TwilioService {
     );
   }
 
-  // Sending SMS message
-  Future<void> sendSMS(String to, String message) async {
+  // Helper method to format phone numbers
+  String _formatPhoneNumber(String phoneNumber) {
+    return phoneNumber.startsWith('+1') ? phoneNumber : '+1$phoneNumber';
+  }
+
+  // Universal method to send SMS with success/failure handling
+  Future<bool> _sendSMS(BuildContext context, String to, String message) async {
     try {
+      String formattedPhoneNumber = _formatPhoneNumber(to);
+
       await twilioFlutter.sendSMS(
-        toNumber: to,
+        toNumber: formattedPhoneNumber,
         messageBody: message,
       );
-      print("SMS Sent Successfully!");
+      print("SMS Sent Successfully to $formattedPhoneNumber!");
+
+      return true; // Indicate success
     } catch (e) {
-      print("SMS not sent: $e");
+      print("SMS not sent to $to: $e");
+
+      // Trigger failure notification
+      final notificationManager = Provider.of<NotificationManager>(context, listen: false);
+      notificationManager.showNotification(
+        message: "Failed to send text messages",
+        backgroundColor: Colors.red,
+        icon: Icons.error,
+      );
+
+      return false; // Indicate failure
     }
   }
 
-  Future<void> sendCrashSMS(String link) async {
+  // Universal method to send messages to multiple contacts
+  Future<bool> _sendMessagesToContacts(
+      BuildContext context,
+      String mainMessage, {
+        String? additionalMessage,
+        String? link,
+      }) async {
+    try {
+      String? userName = await firebaseService.getUserName();
+      List<String?>? phoneNums = await firebaseService.getEmergencyContactNumbers();
+      List<String> contacts = (phoneNums ?? []).whereType<String>().toList();
+
+      String fullMessage = _formatMessage(
+        mainMessage: mainMessage,
+        additionalMessage: additionalMessage,
+        link: link,
+      );
+
+      bool allMessagesSent = true; // Track if all messages were sent successfully
+
+      for (String phoneNum in contacts) {
+        bool success = await _sendSMS(context, phoneNum, fullMessage);
+        if (!success) {
+          allMessagesSent = false; // Mark as failure if any message fails
+        }
+      }
+
+      // Show overall success or failure notification
+      final notificationManager = Provider.of<NotificationManager>(context, listen: false);
+      if (allMessagesSent) {
+        notificationManager.showNotification(
+          message: "Message sent!",
+          backgroundColor: Colors.green,
+          icon: Icons.check_circle,
+        );
+      } else {
+        notificationManager.showNotification(
+          message: "Failed to send",
+          backgroundColor: Colors.red,
+          icon: Icons.error,
+        );
+      }
+
+      return allMessagesSent;
+    } catch (e) {
+      print("Error sending messages: $e");
+
+      // Trigger failure notification
+      final notificationManager = Provider.of<NotificationManager>(context, listen: false);
+      notificationManager.showNotification(
+        message: "Failed to send messages",
+        backgroundColor: Colors.red,
+        icon: Icons.error,
+      );
+
+      return false;
+    }
+  }
+
+  // Helper method to format a message with optional details
+  String _formatMessage({
+    required String mainMessage,
+    String? additionalMessage,
+    String? link,
+  }) {
+    String formattedMessage = mainMessage;
+
+    if (additionalMessage != null && additionalMessage.isNotEmpty) {
+      formattedMessage += "\n\n\"$additionalMessage\"";
+    }
+
+    if (link != null && link.isNotEmpty) {
+      formattedMessage += "\n\nLocation: $link";
+    }
+
+    return formattedMessage;
+  }
+
+  // Send crash alert
+  Future<void> sendCrashSMS(BuildContext context, String link) async {
     String? crashMsg = await firebaseService.getCrashMsg();
     String? userName = await firebaseService.getUserName();
-    List<String?>? phoneNums = await firebaseService.getEmergencyContactNumbers();
-    List<String> contacts = (phoneNums ?? []) as List<String>;
 
-    var msg = '';
+    String mainMessage =
+        'Alert from Smart Helmet: ${userName ?? "Unknown User"} has been involved in a crash. Please check on them and contact emergency.';
 
-    //Iterate through list of emergency contacts
-    if (phoneNums != null && contacts.isNotEmpty) {
-      for (String phoneNum in contacts) {
-        //Send out crash message
-        msg = 'Alert from Smart Helmet: ${userName ?? "Unknown User"} has been involved in a crash. Please check on them and contact emergency. "${crashMsg ?? ""}"';
-        sendSMS(phoneNum, msg);
-      }
-    }
+    await _sendMessagesToContacts(
+      context,
+      mainMessage,
+      additionalMessage: crashMsg,
+      link: link,
+    );
   }
 
-  Future<void> sendUpdateSMS(String link) async {
-    String message = "User is on the move: $link";
-    await sendSMS('+14435548319', message); // Replace with recipient's number
-  }
-
-  Future<void> sendSafeSMS() async {
-    String? cMsg = await firebaseService.getCrashMsg();
+  // Send update alert
+  Future<void> sendUpdateSMS(BuildContext context, String link) async {
     String? userName = await firebaseService.getUserName();
-    List<String?>? phoneNums = await firebaseService.getEmergencyContactNumbers();
-    List<String> contacts = (phoneNums ?? []) as List<String>;
 
-    var msg = '';
+    String mainMessage =
+        'Alert from Smart Helmet: ${userName ?? "Unknown User"} is on the move.';
 
-    //Iterate through list of emergency contacts
-    if (phoneNums != null && contacts.isNotEmpty) {
-      for (String phoneNum in contacts) {
-        var msg = '';
-        msg = 'Alert from Smart Helmet: ${userName ?? "Unknown User"} has confirmed their safety. No further action needed at this time';
+    await _sendMessagesToContacts(
+      context,
+      mainMessage,
+      link: link,
+    );
+  }
 
-        //Send out safe message
-        sendSMS(phoneNum, msg);
-      }
-    }
+  // Send safe confirmation
+  Future<void> sendSafeSMS(BuildContext context) async {
+    String? userName = await firebaseService.getUserName();
+
+    String mainMessage =
+        'Alert from Smart Helmet: ${userName ?? "Unknown User"} has confirmed their safety. No further action needed at this time.';
+
+    await _sendMessagesToContacts(
+      context,
+      mainMessage,
+    );
   }
 }

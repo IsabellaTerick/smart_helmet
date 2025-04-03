@@ -29,7 +29,7 @@ void handleButtonPress(bool buttonState) {
     }
 
     if (pressDuration % 1000 == 0) {
-      Serial.print("Press Duration: ");
+      Serial.print("Hold Duration: ");
       Serial.println(pressDuration / 1000);
     }
   }
@@ -74,7 +74,6 @@ void handleTap() {
       currentMode = "safe";
       tapCount = 0; // Reset tap count
       Serial.println("Tapped 3 times: Safe Mode");
-      handleBluetoothNotifications(currentMode);
     } else {
       tapCount++; // Increment tap count
       Serial.print("Tap Count:");
@@ -94,6 +93,12 @@ void handleHold(unsigned long pressDuration) {
       Serial.println("Hold handled");
     } else if (pressDuration >= HOLD_THRESHOLD) {
       safeFlashing = true;
+    }
+  } else if (currentMode == "cancel") {
+    if (pressDuration >= MODE_CHANGE_HOLD_TIME) {
+      currentMode = "safe"; // Switch to safe mode
+      holdHandled = true;
+      Serial.println("Returned to Safe Mode");
     }
   } else if (currentMode == "crash") {
     if (pressDuration >= MODE_CHANGE_HOLD_TIME) {

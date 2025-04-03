@@ -14,13 +14,14 @@ Future<bool> showCrashConfirmationDialog(BuildContext context) async {
             onPressed: () {
               Navigator.of(context).pop(false); // User canceled
             },
-            child: const Text("No", style: TextStyle(color: Colors.grey)),
+            child: const Text("Cancel", style: TextStyle(color: Colors.black)),
           ),
           TextButton(
             onPressed: () {
               Navigator.of(context).pop(true); // User confirmed
             },
-            child: const Text("Yes", style: TextStyle(color: Colors.red)),
+            style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
+            child: const Text("Send", style: TextStyle(color: Colors.white)),
           ),
         ],
       );

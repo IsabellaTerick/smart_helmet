@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import './bluetooth_service.dart';
 
@@ -11,14 +13,15 @@ class BluetoothIcon extends StatefulWidget {
 }
 
 class _BluetoothIconState extends State<BluetoothIcon> {
+  late StreamSubscription<bool> _connectionSubscription;
   bool _isConnected = false;
 
   @override
   void initState() {
     super.initState();
 
-    // Listen to the connection state from BluetoothService
-    widget.bluetoothService.connectionStateStream.listen((connected) {
+    // Subscribe to the connection state stream
+    _connectionSubscription = widget.bluetoothService.connectionStateStream.listen((connected) {
       setState(() {
         _isConnected = connected;
       });
@@ -26,11 +29,17 @@ class _BluetoothIconState extends State<BluetoothIcon> {
   }
 
   @override
+  void dispose() {
+    _connectionSubscription.cancel(); // Cancel the subscription to avoid memory leaks
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
     return GestureDetector(
       onTap: () async {
         if (!_isConnected) {
-          await widget.bluetoothService.scanAndConnect();
+          await widget.bluetoothService.scanAndConnect(context);
         }
       },
       child: Container(

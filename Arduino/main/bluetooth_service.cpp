@@ -9,17 +9,20 @@ extern String currentMode;
 // Callbacks for BLE server events
 class MyServerCallbacks : public BLEServerCallbacks {
     void onConnect(BLEServer* pServer) {
-      deviceConnected = true;
       Serial.println("Device connected!");
 
       // Send the current mode to the Flutter app after connection
-      if (pCharacteristic != NULL) {
-        delay(5000);
-        pCharacteristic->setValue(currentMode.c_str());
-        pCharacteristic->notify();
-        Serial.print("Connection mode sent to app: ");
-        Serial.println(currentMode);
+      if (currentMode == "crash" && !deviceConnected) {
+        if (pCharacteristic != NULL) {
+          delay(2000);
+          pCharacteristic->setValue(currentMode.c_str());
+          pCharacteristic->notify();
+          Serial.print("Connection mode sent to app: ");
+          Serial.println(currentMode);
+        }
       }
+
+      deviceConnected = true;
     }
 
     void onDisconnect(BLEServer* pServer) {

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
+import 'package:provider/provider.dart';
 import './services/device_id_service.dart';
 import './bluetooth/bluetooth_service.dart';
 import './bluetooth/bluetooth_btn.dart';
@@ -10,22 +11,28 @@ import './contacts/emergency_contact_tbl.dart';
 import './contacts/add_contact_btn.dart';
 import './other/bt_msg_display.dart';
 import './crash/mode_synchronizer.dart';
+import './notifications/notification_manager.dart'; // Import NotificationManager
+import './notifications/notification_banner.dart'; // Import NotificationBanner
+import './settings/edit_settings_popup.dart'; // Import editUserSettings
+import './services/firebase_service.dart'; // Import FirebaseService
 import 'firebase_options.dart';
 
-// Main app code
 void main() async {
-  // Firebase setup
   WidgetsFlutterBinding.ensureInitialized();
-  await Firebase.initializeApp();
-
-  // Run app
-  runApp(const MyApp());
+  await Firebase.initializeApp(
+    options: DefaultFirebaseOptions.currentPlatform,
+  );
+  runApp(
+    ChangeNotifierProvider(
+      create: (_) => NotificationManager(),
+      child: const MyApp(),
+    ),
+  );
 }
 
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
 
-  // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
@@ -35,7 +42,28 @@ class MyApp extends StatelessWidget {
         useMaterial3: true,
         fontFamily: 'Nunito',
       ),
-      home: const MyHomePage(title: 'Smart Helmet'),
+      home: Builder(
+        builder: (context) => Stack(
+          children: [
+            const MyHomePage(title: 'Smart Helmet'),
+            Positioned(
+              top: 20,
+              left: 20,
+              right: 20,
+              child: Consumer<NotificationManager>(
+                builder: (context, notificationManager, _) {
+                  if (!notificationManager.isVisible) return const SizedBox.shrink();
+                  return NotificationBanner(
+                    message: notificationManager.message,
+                    backgroundColor: notificationManager.backgroundColor,
+                    icon: notificationManager.icon,
+                  );
+                },
+              ),
+            ),
+          ],
+        ),
+      ),
     );
   }
 }
@@ -52,45 +80,50 @@ class MyHomePage extends StatefulWidget {
 class MyHomePageState extends State<MyHomePage> {
   final BluetoothService _bluetoothService = BluetoothService();
   late final ModeSynchronizer _modeSynchronizer;
+  final FirebaseService _firebaseService = FirebaseService();
 
   @override
   void initState() {
     super.initState();
-    _modeSynchronizer = ModeSynchronizer(_bluetoothService); // Initialize ModeSynchronizer
+    _modeSynchronizer = ModeSynchronizer(_bluetoothService);
+
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      _bluetoothService.scanAndConnect(context); // Pass context for notifications
+
+      // Check if the user has a name saved in Firestore
+      String? userName = await _firebaseService.getUserName();
+      print("Username: ${userName}");
+      if (userName == null || userName.isEmpty) {
+        // Open the settings popup if no name is saved
+        editUserSettings(context);
+      }
+    });
   }
 
   @override
   Widget build(BuildContext context) {
-    // This method is rerun every time setState is called, for instance as done
-    // The Flutter framework has been optimized to make rerunning build methods
-    // fast, so that you can just rebuild anything that needs updating rather
-    // than having to individually change instances of widgets.
     return Scaffold(
       appBar: AppBar(
         backgroundColor: Colors.indigo[200],
         title: Text(widget.title),
         actions: [
           BluetoothIcon(bluetoothService: _bluetoothService),
-          EditSettingsBtn()
+          EditSettingsBtn(),
         ],
       ),
       body: FutureBuilder<String>(
-        future: getOrGenDeviceId(), // Retrieve device ID from the new service
+        future: getOrGenDeviceId(),
         builder: (context, snapshot) {
-          // Getting device ID
           if (!snapshot.hasData) {
             return const Center(child: CircularProgressIndicator());
           }
           final String deviceId = snapshot.data!;
-
-          // Returning home page
           return Center(
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: <Widget>[
                 CrashMsg(deviceId: deviceId),
-                CrashSafeBtns(modeSynchronizer: _modeSynchronizer), // Pass ModeSynchronizer
-                // MessageDisplay(message: _message),
+                CrashSafeBtns(modeSynchronizer: _modeSynchronizer),
                 EmergencyContactTbl(),
                 AddContactBtn(),
               ],

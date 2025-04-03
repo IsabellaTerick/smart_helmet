@@ -12,7 +12,6 @@ class CrashSafeBtns extends StatefulWidget {
 }
 
 class _CrashSafeBtnsState extends State<CrashSafeBtns> {
-  // TODO: GET CURRENT MODE FROM DATABASE
   String _currentMode = "safe";
 
   @override
@@ -26,20 +25,22 @@ class _CrashSafeBtnsState extends State<CrashSafeBtns> {
   }
 
   Future<void> _handleCrashButtonPress(BuildContext context) async {
-    // Show the confirmation dialog
+    // Show confirmation dialog before sending crash alert
     bool? userConfirmed = await showCrashConfirmationDialog(context);
 
-    // If the user confirmed, send the crash alert
     if (userConfirmed == true) {
-      widget.modeSynchronizer.setMode("crash");
+      widget.modeSynchronizer.setMode(context, "crash");
     }
+  }
+
+  Future<void> _handleSafeButtonPress(BuildContext context) async {
+    widget.modeSynchronizer.setMode(context, "safe");
   }
 
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.only(
-          top: 10.0, bottom: 10.0, right: 20.0, left: 20.0),
+      padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 20),
       child: Column(
         children: [
           Padding(
@@ -74,9 +75,7 @@ class _CrashSafeBtnsState extends State<CrashSafeBtns> {
             height: 50,
             child: ElevatedButton(
               onPressed: _currentMode == "crash"
-                  ? () {
-                      widget.modeSynchronizer.setMode("safe");
-                    }
+                  ? () => _handleSafeButtonPress(context)
                   : null,
               style: ElevatedButton.styleFrom(
                 backgroundColor: Colors.lightGreen[700],
