@@ -44,10 +44,14 @@ class ModeSynchronizer {
   }
 
   void _setupMessageListener() {
-    _bluetoothService.setMessageListener((context, message) {
+    _bluetoothService.setMessageListener((context, message) async {
       if (message == "safe" || message == "crash") {
-        if (message != _currentMode) { // Prevent feedback loop
+        // Check if the received mode is different from the current mode
+        if (message != _currentMode) {
+          print("Received new mode from Bluetooth: $message");
           setMode(context, message);
+        } else {
+          print("Ignoring duplicate mode update: $message");
         }
       }
     });

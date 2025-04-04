@@ -17,6 +17,7 @@ class BluetoothService {
   late final SendStatus _sendStatus; // Instance of SendStatus
   bool _isConnected = false;
   bool _sentMode = false;
+  bool _isConnecting = false; // Flag to track ongoing connection attempts
 
   // Public getter for the connection state stream
   Stream<bool> get connectionStateStream => _connectionController.stream;
@@ -57,6 +58,12 @@ class BluetoothService {
   }
 
   Future<void> scanAndConnect(BuildContext context) async {
+    if (_isConnecting) {
+      print("Already attempting to connect. Skipping...");
+      return;
+    }
+
+    _isConnecting = true; // Mark as connecting
     await _requestPermissions();
 
     print("Start scanning...");
@@ -72,6 +79,7 @@ class BluetoothService {
           _connectedDevice = result.device;
 
           try {
+            fb.FlutterBluePlus.stopScan(); // Stop scanning immediately after finding the device
             await _connectedDevice!.connect();
             _updateConnectionStatus(context, true);
             print("Connected to ${_connectedDevice!.platformName}");
@@ -88,30 +96,30 @@ class BluetoothService {
                   _characteristic!.lastValueStream.listen((value) {
                     final message = String.fromCharCodes(value);
                     _notifyMessageListener(context, message);
-                    if (message != '') {
+                    if (message.isNotEmpty) {
                       print("Received notification: $message");
                     }
                   });
 
                   // Send initial mode ("crash") to the microcontroller
-                  if (_sentMode == false) {
+                  if (!_sentMode) {
                     await _sendInitialMode(context);
                   }
                 }
               }
             }
-
-            fb.FlutterBluePlus.stopScan();
           } catch (e) {
             _updateConnectionStatus(context, false);
             print("Error connecting to device: $e");
+          } finally {
+            _isConnecting = false; // Reset connecting flag
           }
         }
       }
     });
 
     // Stop scanning if no device is found after the timeout
-    Future.delayed(const Duration(seconds: 2), () {
+    Future.delayed(const Duration(seconds: 10), () {
       if (!deviceFound) {
         final notificationManager = Provider.of<NotificationManager>(context, listen: false);
         notificationManager.showNotification(
@@ -121,6 +129,7 @@ class BluetoothService {
         );
         fb.FlutterBluePlus.stopScan();
       }
+      _isConnecting = false; // Reset connecting flag
     });
   }
 
@@ -131,6 +140,7 @@ class BluetoothService {
         if (state == fb.BluetoothConnectionState.disconnected) {
           _updateConnectionStatus(context, false);
           _sentMode = false;
+          _isConnecting = false; // Reset connecting flag on disconnection
           print("Device disconnected.");
         }
       });

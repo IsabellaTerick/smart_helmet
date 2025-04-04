@@ -5,7 +5,6 @@ BLECharacteristic *pCharacteristic = NULL;
 
 bool deviceConnected = false;
 extern String currentMode;
-int sendCurrentMode = 0;
 
 // Callbacks for BLE server events
 class MyServerCallbacks : public BLEServerCallbacks {
@@ -17,7 +16,6 @@ class MyServerCallbacks : public BLEServerCallbacks {
           pCharacteristic->notify();
           Serial.print("Connection mode sent to app: ");
           Serial.println(currentMode);
-          sendCurrentMode++;
         }
       }
 
