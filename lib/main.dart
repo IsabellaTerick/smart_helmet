@@ -124,8 +124,16 @@ class MyHomePageState extends State<MyHomePage> {
               children: <Widget>[
                 CrashMsg(deviceId: deviceId),
                 CrashSafeBtns(modeSynchronizer: _modeSynchronizer),
-                EmergencyContactTbl(),
-                AddContactBtn(),
+                Expanded(
+                  child: SingleChildScrollView(
+                    child: Column(
+                      children: [
+                        EmergencyContactTbl(modeSynchronizer: _modeSynchronizer),
+                        AddContactBtn(modeSynchronizer: _modeSynchronizer),
+                      ],
+                    ),
+                  ),
+                ),
               ],
             ),
           );

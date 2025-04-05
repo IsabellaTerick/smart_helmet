@@ -1,13 +1,33 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import '../services/device_id_service.dart';
-import './contact_service.dart'; // Import contact service
+import './contact_service.dart';
+import '../crash/mode_synchronizer.dart'; // Import ModeSynchronizer
+import '../services/firebase_service.dart'; // Import FirebaseService
 
-class EmergencyContactTbl extends StatelessWidget {
-  EmergencyContactTbl({super.key});
+class EmergencyContactTbl extends StatefulWidget {
+  final ModeSynchronizer modeSynchronizer;
 
-  // Firebase instance to get real-time updates to the table
-  final FirebaseFirestore firestore = FirebaseFirestore.instance;
+  const EmergencyContactTbl({super.key, required this.modeSynchronizer});
+
+  @override
+  _EmergencyContactTblState createState() => _EmergencyContactTblState();
+}
+
+class _EmergencyContactTblState extends State<EmergencyContactTbl> {
+  String _currentMode = "safe"; // Tracks the current mode
+
+  @override
+  void initState() {
+    super.initState();
+
+    // Listen for mode changes
+    widget.modeSynchronizer.modeStream.listen((newMode) {
+      setState(() {
+        _currentMode = newMode;
+      });
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -76,8 +96,11 @@ class EmergencyContactTbl extends StatelessWidget {
                     // Scrollable table body
                     Expanded(
                       child: StreamBuilder(
-                        stream: firestore.collection(deviceId).doc('contacts').collection('list').snapshots(),
+                        stream: FirebaseFirestore.instance.collection(deviceId).doc('contacts').collection('list').snapshots(),
                         builder: (context, snapshot) {
+                          if (snapshot.connectionState == ConnectionState.waiting) {
+                            return const Center(child: CircularProgressIndicator());
+                          }
                           if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
                             // No contacts -- show example row
                             return SingleChildScrollView(
@@ -123,8 +146,9 @@ class EmergencyContactTbl extends StatelessWidget {
                                       mainAxisAlignment: MainAxisAlignment.center,
                                       children: [
                                         IconButton(
-                                          icon: const Icon(Icons.edit, color: Colors.blue),
-                                          onPressed: () {
+                                          icon: Icon(Icons.edit, color: _currentMode == "safe" ? Colors.blue : Colors.grey),
+                                          onPressed: _currentMode == "safe"
+                                              ? () {
                                             editContact(
                                               context,
                                               deviceId,
@@ -132,13 +156,25 @@ class EmergencyContactTbl extends StatelessWidget {
                                               contName,
                                               contNum,
                                             );
-                                          },
+                                          }
+                                              : null,
                                         ),
                                         IconButton(
-                                          icon: const Icon(Icons.delete, color: Colors.red),
-                                          onPressed: () {
-                                            deleteContact(context, deviceId, contId, contName);
-                                          },
+                                          icon: Icon(Icons.delete, color: _currentMode == "safe" ? Colors.red : Colors.grey),
+                                          onPressed: _currentMode == "safe"
+                                              ? () async {
+                                            try {
+                                              await deleteContact(context, deviceId, contId, contName);
+                                              ScaffoldMessenger.of(context).showSnackBar(
+                                                SnackBar(content: Text("Contact deleted")),
+                                              );
+                                            } catch (e) {
+                                              ScaffoldMessenger.of(context).showSnackBar(
+                                                SnackBar(content: Text("Failed to delete contact")),
+                                              );
+                                            }
+                                          }
+                                              : null,
                                         ),
                                       ],
                                     )),

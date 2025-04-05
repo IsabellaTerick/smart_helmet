@@ -54,7 +54,7 @@ class _CrashSafeBtnsState extends State<CrashSafeBtns> {
                     : null,
                 style: ElevatedButton.styleFrom(
                   backgroundColor: Colors.red[800],
-                  foregroundColor: Colors.white70,
+                  foregroundColor: Colors.white,
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(8),
                   ),
@@ -79,7 +79,7 @@ class _CrashSafeBtnsState extends State<CrashSafeBtns> {
                   : null,
               style: ElevatedButton.styleFrom(
                 backgroundColor: Colors.lightGreen[700],
-                foregroundColor: Colors.white70,
+                foregroundColor: Colors.white,
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(8),
                 ),
