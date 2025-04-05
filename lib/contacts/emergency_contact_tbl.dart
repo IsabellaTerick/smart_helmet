@@ -157,7 +157,12 @@ class _EmergencyContactTblState extends State<EmergencyContactTbl> {
                                               contNum,
                                             );
                                           }
-                                              : null,
+                                        ),
+                                        IconButton (
+                                          icon: const Icon(Icons.message, color: Colors.green),
+                                          onPressed: () {
+                                            editContactCrashMsg(context, deviceId, contId, contName, contNum);
+                                          },
                                         ),
                                         IconButton(
                                           icon: Icon(Icons.delete, color: _currentMode == "safe" ? Colors.red : Colors.grey),
