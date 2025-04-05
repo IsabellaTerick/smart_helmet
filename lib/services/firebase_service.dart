@@ -71,6 +71,31 @@ class FirebaseService {
     return null; // Return null if no contacts are found or an error occurs
   }
 
+  // Retrieves the custom crash message for an emergency contact from Firestore
+  Future<String?> getContactCustomCrashMsg(String phoneNumber) async {
+    try {
+      String deviceId = await getOrGenDeviceId();
+      QuerySnapshot snapshot = await firestore
+          .collection(deviceId)
+          .doc('contacts')
+          .collection('list')
+          .where('phoneNumber', isEqualTo: phoneNumber.trim())
+          .get();
+
+      if (snapshot.docs.isNotEmpty) {
+        // Extract the data from the first matching document
+        Map<String, dynamic>? data =
+        snapshot.docs.first.data() as Map<String, dynamic>?;
+
+        // Return the custom crash message if it exists
+        return data?['customCrashMsg']?.toString().trim();
+      }
+    } catch (e) {
+      print("Error fetching emergency contact numbers: $e");
+    }
+    return null; // Return null if no contacts are found or an error occurs
+  }
+
   // Retrieves the current mode of the helmet (safe/crash) from Firestore
   Future<String?> getMode() async {
     try {

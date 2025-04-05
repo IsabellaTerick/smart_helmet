@@ -12,7 +12,7 @@ class TwilioService {
   TwilioService() {
     twilioFlutter = TwilioFlutter(
       accountSid: 'AC5ef8faf67b7a79889cefdfb6ac89d1e4',
-      authToken: '8ae583a38a332a0c0b0a2f37b2dd6fcf',
+      authToken: 'c411348ff8fd3e8eaf1894e5098bcc3c',
       twilioNumber: '+18667192795',
     );
   }
@@ -58,18 +58,26 @@ class TwilioService {
       }) async {
     try {
       String? userName = await firebaseService.getUserName();
+      String? mode = await firebaseService.getMode();
+      String? contactCrashMsg;
       List<String?>? phoneNums = await firebaseService.getEmergencyContactNumbers();
       List<String> contacts = (phoneNums ?? []).whereType<String>().toList();
-
-      String fullMessage = _formatMessage(
-        mainMessage: mainMessage,
-        additionalMessage: additionalMessage,
-        link: link,
-      );
 
       bool allMessagesSent = true; // Track if all messages were sent successfully
 
       for (String phoneNum in contacts) {
+        String? personalizedMessage = additionalMessage;
+
+        if (mode == 'crash') {
+          personalizedMessage = await firebaseService.getContactCustomCrashMsg(phoneNum) ?? additionalMessage;
+        }
+
+        String fullMessage = _formatMessage(
+          mainMessage: mainMessage,
+          additionalMessage: personalizedMessage,
+          link: link,
+        );
+
         bool success = await _sendSMS(context, phoneNum, fullMessage);
         if (!success) {
           allMessagesSent = false; // Mark as failure if any message fails

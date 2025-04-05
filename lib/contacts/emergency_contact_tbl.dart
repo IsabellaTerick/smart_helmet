@@ -132,6 +132,12 @@ class EmergencyContactTbl extends StatelessWidget {
                                               contName,
                                               contNum,
                                             );
+                                          }
+                                        ),
+                                        IconButton (
+                                          icon: const Icon(Icons.message, color: Colors.green),
+                                          onPressed: () {
+                                            editContactCrashMsg(context, deviceId, contId, contName, contNum);
                                           },
                                         ),
                                         IconButton(
