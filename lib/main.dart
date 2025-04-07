@@ -11,10 +11,10 @@ import './contacts/emergency_contact_tbl.dart';
 import './contacts/add_contact_btn.dart';
 import './other/bt_msg_display.dart';
 import './crash/mode_synchronizer.dart';
-import './notifications/notification_manager.dart'; // Import NotificationManager
-import './notifications/notification_banner.dart'; // Import NotificationBanner
-import './settings/edit_settings_popup.dart'; // Import editUserSettings
-import './services/firebase_service.dart'; // Import FirebaseService
+import './notifications/notification_manager.dart';
+import './notifications/notification_banner.dart';
+import './settings/edit_settings_popup.dart';
+import './services/firebase_service.dart';
 import 'firebase_options.dart';
 
 void main() async {
@@ -88,13 +88,11 @@ class MyHomePageState extends State<MyHomePage> {
     _modeSynchronizer = ModeSynchronizer(_bluetoothService);
 
     WidgetsBinding.instance.addPostFrameCallback((_) async {
-      _bluetoothService.scanAndConnect(context); // Pass context for notifications
+      _bluetoothService.scanAndConnect(context);
 
-      // Check if the user has a name saved in Firestore
       String? userName = await _firebaseService.getUserName();
       print("Username: ${userName}");
       if (userName == null || userName.isEmpty) {
-        // Open the settings popup if no name is saved
         editUserSettings(context);
       }
     });
@@ -118,23 +116,46 @@ class MyHomePageState extends State<MyHomePage> {
             return const Center(child: CircularProgressIndicator());
           }
           final String deviceId = snapshot.data!;
-          return Center(
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: <Widget>[
-                CrashMsg(deviceId: deviceId),
-                CrashSafeBtns(modeSynchronizer: _modeSynchronizer),
-                Expanded(
-                  child: SingleChildScrollView(
-                    child: Column(
-                      children: [
-                        EmergencyContactTbl(modeSynchronizer: _modeSynchronizer),
-                        AddContactBtn(modeSynchronizer: _modeSynchronizer),
-                      ],
+
+          // Use SafeArea and LayoutBuilder to ensure content works across device sizes
+          return SafeArea(
+            child: LayoutBuilder(
+              builder: (context, constraints) {
+                return SingleChildScrollView(
+                  physics: const AlwaysScrollableScrollPhysics(),
+                  child: ConstrainedBox(
+                    constraints: BoxConstraints(
+                      minHeight: constraints.maxHeight,
+                    ),
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 10.0),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        children: <Widget>[
+                          const SizedBox(height: 5),
+                          // Crash message section
+                          CrashMsg(deviceId: deviceId),
+                          const SizedBox(height: 5),
+
+                          // Crash/Safe buttons
+                          CrashSafeBtns(modeSynchronizer: _modeSynchronizer),
+                          const SizedBox(height: 5),
+
+                          // Emergency contacts table - no longer in a scrollable container
+                          EmergencyContactTbl(modeSynchronizer: _modeSynchronizer),
+                          const SizedBox(height: 5),
+
+                          // Add contact button
+                          AddContactBtn(modeSynchronizer: _modeSynchronizer),
+
+                          // Add padding at the bottom for better scrolling experience
+                          const SizedBox(height: 24),
+                        ],
+                      ),
                     ),
                   ),
-                ),
-              ],
+                );
+              },
             ),
           );
         },

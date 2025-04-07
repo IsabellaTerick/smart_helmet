@@ -68,6 +68,12 @@ class BluetoothService {
 
     print("Start scanning...");
     fb.FlutterBluePlus.startScan(timeout: const Duration(seconds: 10));
+    final notificationManager = Provider.of<NotificationManager>(context, listen: false);
+    notificationManager.showNotification(
+      message: "Connecting...",
+      backgroundColor: Colors.blue,
+      icon: Icons.bluetooth_connected,
+    );
 
     bool deviceFound = false;
 
@@ -124,7 +130,7 @@ class BluetoothService {
         final notificationManager = Provider.of<NotificationManager>(context, listen: false);
         notificationManager.showNotification(
           message: "Smart Helmet not found",
-          backgroundColor: Colors.orange,
+          backgroundColor: Colors.orange.shade600,
           icon: Icons.bluetooth_searching,
         );
         fb.FlutterBluePlus.stopScan();

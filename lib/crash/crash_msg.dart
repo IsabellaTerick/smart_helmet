@@ -83,7 +83,7 @@ class CrashMsgState extends State<CrashMsg> {
                 Padding(
                   padding: EdgeInsets.only(bottom: 15.0),
                   child: Text(
-                      'Custom Crash Message:',
+                      'Default Crash Message:',
                       style: TextStyle(fontFamily: 'Nunito', fontSize: 20, fontWeight: FontWeight.bold)
                   ),
                 ),
