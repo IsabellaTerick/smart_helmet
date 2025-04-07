@@ -2,8 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import '../services/device_id_service.dart';
 import './contact_service.dart';
-import '../crash/mode_synchronizer.dart'; // Import ModeSynchronizer
-import '../services/firebase_service.dart'; // Import FirebaseService
+import '../crash/mode_synchronizer.dart';
+import '../services/firebase_service.dart';
 
 class EmergencyContactTbl extends StatefulWidget {
   final ModeSynchronizer modeSynchronizer;
@@ -15,13 +15,11 @@ class EmergencyContactTbl extends StatefulWidget {
 }
 
 class _EmergencyContactTblState extends State<EmergencyContactTbl> {
-  String _currentMode = "safe"; // Tracks the current mode
+  String _currentMode = "safe";
 
   @override
   void initState() {
     super.initState();
-
-    // Listen for mode changes
     widget.modeSynchronizer.modeStream.listen((newMode) {
       setState(() {
         _currentMode = newMode;
@@ -38,190 +36,233 @@ class _EmergencyContactTblState extends State<EmergencyContactTbl> {
           return const Center(child: CircularProgressIndicator());
         }
         String deviceId = deviceSnapshot.data!;
+
         return Padding(
-          padding: const EdgeInsets.all(10.0),
-          child: Column(
-            children: [
-              Padding(
-                padding: const EdgeInsets.only(bottom: 15.0),
-                child: Text(
-                  'Emergency Contacts:',
-                  style: TextStyle(fontFamily: 'Nunito', fontSize: 20, fontWeight: FontWeight.bold),
+          padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+          child: Container(
+            constraints: const BoxConstraints(maxHeight: 350),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(12.0),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.grey.withOpacity(0.2),
+                  spreadRadius: 1,
+                  blurRadius: 6,
+                  offset: const Offset(0, 3),
                 ),
-              ),
-              Container(
-                height: 250,
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  border: Border.all(color: Colors.black, width: 1.0),
-                  borderRadius: BorderRadius.circular(8.0),
-                ),
-                child: Column(
-                  children: [
-                    // Fixed header
-                    Container(
-                      decoration: BoxDecoration(
-                        borderRadius: const BorderRadius.only(
-                          topLeft: Radius.circular(8.0),
-                          topRight: Radius.circular(8.0),
-                        ),
-                        color: Colors.grey[600],
-                      ),
-                      child: Table(
-                        columnWidths: {
-                          0: const FixedColumnWidth(139),
-                          1: const FixedColumnWidth(139),
-                          2: const FixedColumnWidth(100),
-                        },
-                        border: TableBorder(
-                          horizontalInside: BorderSide(color: Colors.black, width: 1),
-                          verticalInside: BorderSide(color: Colors.black, width: 1),
-                          top: BorderSide(color: Colors.black, width: 1),
-                          bottom: BorderSide(color: Colors.black, width: 1),
-                          left: BorderSide(color: Colors.black, width: 1),
-                          right: BorderSide(color: Colors.black, width: 1),
-                        ),
-                        children: [
-                          TableRow(
-                            decoration: BoxDecoration(color: Colors.grey[600]),
-                            children: [
-                              tableCell(const Text('Name'), isHeader: true),
-                              tableCell(const Text('Phone Number'), isHeader: true),
-                              tableCell(const Text('Actions'), isHeader: true),
-                            ],
-                          ),
-                        ],
-                      ),
-                    ),
-                    // Scrollable table body
-                    Expanded(
-                      child: StreamBuilder(
-                        stream: FirebaseFirestore.instance.collection(deviceId).doc('contacts').collection('list').snapshots(),
-                        builder: (context, snapshot) {
-                          if (snapshot.connectionState == ConnectionState.waiting) {
-                            return const Center(child: CircularProgressIndicator());
-                          }
-                          if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
-                            // No contacts -- show example row
-                            return SingleChildScrollView(
-                              child: Table(
-                                border: TableBorder.all(),
-                                columnWidths: {
-                                  0: const FixedColumnWidth(139),
-                                  1: const FixedColumnWidth(139),
-                                  2: const FixedColumnWidth(100),
-                                },
-                                children: [
-                                  TableRow(
-                                    children: [
-                                      tableCell(const Text('Example Name')),
-                                      tableCell(const Text('123-456-7890')),
-                                      tableCell(Icon(Icons.delete, color: Colors.transparent)),
-                                    ],
-                                  ),
-                                ],
-                              ),
-                            );
-                          }
+              ],
+            ),
+            child: StreamBuilder(
+              stream: FirebaseFirestore.instance
+                  .collection(deviceId)
+                  .doc('contacts')
+                  .collection('list')
+                  .snapshots(),
+              builder: (context, snapshot) {
+                if (snapshot.connectionState == ConnectionState.waiting) {
+                  return const Center(child: CircularProgressIndicator());
+                }
 
-                          var contacts = snapshot.data!.docs;
-                          return SingleChildScrollView(
-                            child: Table(
-                              border: TableBorder.all(),
-                              columnWidths: {
-                                0: const FixedColumnWidth(139),
-                                1: const FixedColumnWidth(139),
-                                2: const FixedColumnWidth(100),
-                              },
-                              children: contacts.map((contact) {
-                                var contId = contact.id;
-                                var contName = contact['name'];
-                                var contNum = contact['phoneNumber'];
+                if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
+                  return _buildEmptyContactsList();
+                }
 
-                                return TableRow(
-                                  children: [
-                                    tableCell(Text(contName)),
-                                    tableCell(Text(contNum)),
-                                    tableCell(Row(
-                                      mainAxisAlignment: MainAxisAlignment.center,
-                                      children: [
-                                        IconButton(
-                                          icon: Icon(Icons.edit, color: _currentMode == "safe" ? Colors.blue : Colors.grey),
-                                          onPressed: _currentMode == "safe"
-                                              ? () {
-                                            editContact(
-                                              context,
-                                              deviceId,
-                                              contId,
-                                              contName,
-                                              contNum,
-                                            );
-                                          }
-                                        ),
-                                        IconButton (
-                                          icon: const Icon(Icons.message, color: Colors.green),
-                                          onPressed: () {
-                                            editContactCrashMsg(context, deviceId, contId, contName, contNum);
-                                          },
-                                        ),
-                                        IconButton(
-                                          icon: Icon(Icons.delete, color: _currentMode == "safe" ? Colors.red : Colors.grey),
-                                          onPressed: _currentMode == "safe"
-                                              ? () async {
-                                            try {
-                                              await deleteContact(context, deviceId, contId, contName);
-                                              ScaffoldMessenger.of(context).showSnackBar(
-                                                SnackBar(content: Text("Contact deleted")),
-                                              );
-                                            } catch (e) {
-                                              ScaffoldMessenger.of(context).showSnackBar(
-                                                SnackBar(content: Text("Failed to delete contact")),
-                                              );
-                                            }
-                                          }
-                                              : null,
-                                        ),
-                                      ],
-                                    )),
-                                  ],
-                                );
-                              }).toList(),
-                            ),
-                          );
-                        },
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ],
+                var contacts = snapshot.data!.docs;
+                return ListView.separated(
+                  padding: EdgeInsets.zero,
+                  itemCount: contacts.length,
+                  separatorBuilder: (context, index) => const Divider(height: 1),
+                  itemBuilder: (context, index) {
+                    var contact = contacts[index];
+                    var contId = contact.id;
+                    var contName = contact['name'];
+                    var contNum = contact['phoneNumber'];
+
+                    return _buildContactListTile(
+                        context,
+                        deviceId,
+                        contId,
+                        contName,
+                        contNum
+                    );
+                  },
+                );
+              },
+            ),
           ),
         );
       },
     );
   }
 
-  // Code for a table cell
-  Widget tableCell(Widget child, {bool isHeader = false}) {
-    return Container(
-      alignment: Alignment.center,
-      padding: const EdgeInsets.all(8.0),
-      child: DefaultTextStyle(
-        style: TextStyle(
-          fontFamily: 'Nunito',
-          fontWeight: isHeader ? FontWeight.bold : FontWeight.normal,
-          color: isHeader ? Colors.white : Colors.black,
-        ),
-        child: Center(
-          child: child is Text
-              ? Text(
-            child.data!,
-            textAlign: TextAlign.center,
-            style: child.style,
-          )
-              : child,
+  Widget _buildEmptyContactsList() {
+    return Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(
+            Icons.contact_phone_outlined,
+            size: 64,
+            color: Colors.grey[400],
+          ),
+          const SizedBox(height: 16),
+          Text(
+            'No emergency contacts added yet',
+            style: TextStyle(
+              fontFamily: 'Nunito',
+              fontSize: 16,
+              color: Colors.grey[600],
+            ),
+          ),
+          const SizedBox(height: 8),
+          Text(
+            'Add contacts using the button below',
+            style: TextStyle(
+              fontFamily: 'Nunito',
+              fontSize: 14,
+              color: Colors.grey[500],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildContactListTile(
+      BuildContext context,
+      String deviceId,
+      String contactId,
+      String name,
+      String phoneNumber) {
+
+    return ListTile(
+      contentPadding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+      leading: CircleAvatar(
+        backgroundColor: Colors.blue[100],
+        child: Text(
+          name.isNotEmpty ? name[0].toUpperCase() : '?',
+          style: TextStyle(
+            color: Colors.blue[800],
+            fontWeight: FontWeight.bold,
+          ),
         ),
       ),
+      title: Text(
+        name,
+        style: const TextStyle(
+          fontFamily: 'Nunito',
+          fontWeight: FontWeight.bold,
+          fontSize: 16,
+        ),
+      ),
+      subtitle: Text(
+        phoneNumber,
+        style: TextStyle(
+          fontFamily: 'Nunito',
+          color: Colors.grey[600],
+        ),
+      ),
+      trailing: _buildActions(context, deviceId, contactId, name, phoneNumber),
+    );
+  }
+
+  Widget _buildActions(
+      BuildContext context,
+      String deviceId,
+      String contactId,
+      String name,
+      String phoneNumber) {
+
+    final bool isEditable = _currentMode == "safe";
+
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        // Edit Contact Action
+        IconButton(
+          icon: Icon(
+            Icons.edit_outlined,
+            color: isEditable ? Colors.blue : Colors.grey,
+          ),
+          tooltip: 'Edit Contact',
+          onPressed: isEditable
+              ? () => editContact(
+            context,
+            deviceId,
+            contactId,
+            name,
+            phoneNumber,
+          )
+              : null,
+        ),
+
+        // Edit Message Action
+        IconButton(
+          icon: Icon(
+            Icons.message_outlined,
+            color: isEditable ? Colors.green : Colors.grey,
+          ),
+          tooltip: 'Edit Message',
+          onPressed: isEditable
+              ? () async {
+            try {
+              await editContactCrashMsg(
+                  context,
+                  deviceId,
+                  contactId,
+                  name,
+                  phoneNumber
+              );
+              if (context.mounted) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text("Crash message updated"),
+                    backgroundColor: Colors.grey,
+                  ),
+                );
+              }
+            } catch (e) {
+              if (context.mounted) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text("Failed to update crash message"),
+                    backgroundColor: Colors.red,
+                  ),
+                );
+              }
+            }
+          }
+              : null,
+        ),
+
+        // Delete Contact Action
+        IconButton(
+          icon: Icon(
+            Icons.delete_outline,
+            color: isEditable ? Colors.red : Colors.grey,
+          ),
+          tooltip: 'Delete Contact',
+          onPressed: isEditable
+              ? () async {
+            try {
+              await deleteContact(context, deviceId, contactId, name);
+              if (context.mounted) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(content: Text("Contact deleted")),
+                );
+              }
+            } catch (e) {
+              if (context.mounted) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(content: Text("Failed to delete contact")),
+                );
+              }
+            }
+          }
+              : null,
+        ),
+      ],
     );
   }
 }

@@ -53,7 +53,7 @@ void editContact(BuildContext context, String deviceId, String contId, String na
 }
 
 //Function to edit the custom crash message of a contact
-void editContactCrashMsg(BuildContext context, String deviceId, String contId, String name, String num) {
-  // Open the edit contact crash message dialog
-  editContactCrashMsgDialog(context, deviceId, contId, name, num);
+Future<void> editContactCrashMsg(BuildContext context, String deviceId, String contId, String name, String num) async {
+  // Open the edit crash message dialog and wait for it to close
+  await editCrashMessageDialog(context, deviceId, contId);
 }
