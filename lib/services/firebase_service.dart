@@ -136,4 +136,23 @@ class FirebaseService {
   }
 
 
+  // Retrieves a stream of the number of emergency contacts from Firestore
+  // Retrieves a stream of the number of emergency contacts from Firestore
+  Stream<int> getEmergencyContactCountStream() async* {
+    try {
+      // Fetch the device ID asynchronously
+      String deviceId = await getOrGenDeviceId();
+
+      // Yield the contact count as a stream
+      yield* FirebaseFirestore.instance
+          .collection(deviceId)
+          .doc('contacts')
+          .collection('list')
+          .snapshots()
+          .map((snapshot) => snapshot.docs.length);
+    } catch (e) {
+      print("Error fetching contact count stream: $e");
+      yield 0; // Fallback value if an error occurs
+    }
+  }
 }

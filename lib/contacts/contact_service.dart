@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import '../notifications/notification_manager.dart'; // Import NotificationManager
+import '../notifications/notification_manager.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import '../services/device_id_service.dart';
 import './add_contact_popup.dart'; // Import the add contact popup
@@ -26,6 +26,9 @@ Future<void> deleteContact(BuildContext context, String deviceId, String contId,
         backgroundColor: Colors.grey,
         icon: Icons.delete,
       );
+
+      // Return successfully to notify the parent widget
+      return;
     } catch (e) {
       print("Could not delete contact: $e");
 
@@ -36,6 +39,9 @@ Future<void> deleteContact(BuildContext context, String deviceId, String contId,
         backgroundColor: Colors.red,
         icon: Icons.error,
       );
+
+      // Throw an error to notify the parent widget
+      throw e;
     }
   }
 }
@@ -47,7 +53,7 @@ void editContact(BuildContext context, String deviceId, String contId, String na
 }
 
 //Function to edit the custom crash message of a contact
-void editContactCrashMsg(BuildContext context, String deviceId, String contId, String name, String num) {
-  // Open the edit contact crash message dialog
-  editContactCrashMsgDialog(context, deviceId, contId, name, num);
+Future<void> editContactCrashMsg(BuildContext context, String deviceId, String contId, String name, String num) async {
+  // Open the edit crash message dialog and wait for it to close
+  await editCrashMessageDialog(context, deviceId, contId);
 }

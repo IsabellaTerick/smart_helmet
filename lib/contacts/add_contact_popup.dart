@@ -19,8 +19,8 @@ String? normalizeAndValidatePhoneNumber(String phoneNumber) {
 }
 
 // Method to show the popup for adding or editing a contact
-void addContactDialog(BuildContext context,
-    {String? initialName, String? initialPhoneNumber, String? contactId, String? deviceId}) {
+Future<void> addContactDialog(BuildContext context,
+    {String? initialName, String? initialPhoneNumber, String? contactId, String? deviceId}) async {
   // Controllers for text fields
   TextEditingController nameCtrl = TextEditingController(text: initialName);
   TextEditingController numCtrl = TextEditingController(text: initialPhoneNumber);
@@ -28,8 +28,8 @@ void addContactDialog(BuildContext context,
   // State for error message
   String? errorMessage;
 
-  // Popup dialog
-  showDialog(
+  // Show the dialog and wait for it to close
+  await showDialog(
     context: context,
     builder: (BuildContext context) {
       return StatefulBuilder(
@@ -41,24 +41,22 @@ void addContactDialog(BuildContext context,
               children: [
                 TextField(
                   controller: nameCtrl,
-                  decoration: const InputDecoration(labelText: "Name"),
+                  decoration: InputDecoration(
+                    labelText: "Name",
+                    errorText: errorMessage == "Please enter a name" ? errorMessage : null,
+                  ),
                 ),
                 TextField(
                   controller: numCtrl,
-                  decoration: const InputDecoration(labelText: "Phone Number"),
+                  decoration: InputDecoration(
+                    labelText: "Phone Number",
+                    errorText: errorMessage == "Please enter a valid 10-digit phone number" ||
+                        errorMessage == "This phone number is already in use"
+                        ? errorMessage
+                        : null,
+                  ),
                   keyboardType: TextInputType.phone,
                 ),
-                if (errorMessage != null) ...[
-                  const SizedBox(height: 10),
-                  Text(
-                    errorMessage!,
-                    style: const TextStyle(
-                      color: Colors.orange,
-                      fontWeight: FontWeight.bold,
-                      fontSize: 14,
-                    ),
-                  ),
-                ],
               ],
             ),
             actions: [
@@ -73,14 +71,47 @@ void addContactDialog(BuildContext context,
                   String name = nameCtrl.text.trim();
                   String num = numCtrl.text.trim();
 
-                  // Validate phone number
-                  String? formattedNumber = normalizeAndValidatePhoneNumber(num);
-                  if (name.isEmpty || formattedNumber == null) {
+                  // Validate name
+                  if (name.isEmpty) {
                     setState(() {
-                      errorMessage =
-                      name.isEmpty ? "Please enter a name" : "Please enter a valid 10-digit phone number";
+                      errorMessage = "Please enter a name";
                     });
                     return;
+                  }
+
+                  // Validate phone number
+                  String? formattedNumber = normalizeAndValidatePhoneNumber(num);
+                  if (formattedNumber == null) {
+                    setState(() {
+                      errorMessage = "Please enter a valid 10-digit phone number";
+                    });
+                    return;
+                  }
+
+                  // Check if the phone number is already in use
+                  if (contactId == null || formattedNumber != initialPhoneNumber) {
+                    try {
+                      String currentDeviceId = deviceId ?? await getOrGenDeviceId();
+                      QuerySnapshot snapshot = await FirebaseFirestore.instance
+                          .collection(currentDeviceId)
+                          .doc('contacts')
+                          .collection('list')
+                          .where('phoneNumber', isEqualTo: formattedNumber)
+                          .get();
+
+                      if (snapshot.docs.isNotEmpty) {
+                        setState(() {
+                          errorMessage = "This phone number is already in use";
+                        });
+                        return;
+                      }
+                    } catch (e) {
+                      print("Error checking phone number: $e");
+                      setState(() {
+                        errorMessage = "Failed to check phone number. Please try again.";
+                      });
+                      return;
+                    }
                   }
 
                   try {
@@ -106,7 +137,8 @@ void addContactDialog(BuildContext context,
                       });
 
                       // Trigger "Contact edited" notification
-                      final notificationManager = Provider.of<NotificationManager>(context, listen: false);
+                      final notificationManager =
+                      Provider.of<NotificationManager>(context, listen: false);
                       notificationManager.showNotification(
                         message: "Contact edited",
                         backgroundColor: Colors.grey,
@@ -121,7 +153,8 @@ void addContactDialog(BuildContext context,
                       });
 
                       // Trigger "Contact added" notification
-                      final notificationManager = Provider.of<NotificationManager>(context, listen: false);
+                      final notificationManager =
+                      Provider.of<NotificationManager>(context, listen: false);
                       notificationManager.showNotification(
                         message: "Contact added",
                         backgroundColor: Colors.green,
