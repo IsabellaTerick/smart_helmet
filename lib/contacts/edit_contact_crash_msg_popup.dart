@@ -65,13 +65,13 @@ Future<void> editCrashMessageDialog(BuildContext context, String? deviceId, Stri
                 onPressed: () async {
                   String crashMessage = msgCtrl.text.trim();
 
-                  // Validate crash message
-                  if (crashMessage.isEmpty) {
-                    setState(() {
-                      errorMessage = "Please enter a crash message";
-                    });
-                    return;
-                  }
+                  // // Validate crash message
+                  // if (crashMessage.isEmpty) {
+                  //   setState(() {
+                  //     errorMessage = "Please enter a crash message";
+                  //   });
+                  //   return;
+                  // }
 
                   try {
                     setState(() {
