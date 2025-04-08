@@ -7,11 +7,15 @@ class EditSettingsBtn extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return IconButton(
-      icon: Icon(Icons.settings),
-      color: Colors.black45,
-      onPressed: () {
-        editUserSettings(context);
-      }
+        icon: Icon(
+          Icons.settings,
+          size: 30, // Match the size of the help icon
+        ),
+        color: Colors.black45,
+        tooltip: "Settings",
+        onPressed: () {
+          editUserSettings(context);
+        }
     );
   }
 }

@@ -40,7 +40,7 @@ class _EmergencyContactTblState extends State<EmergencyContactTbl> {
         return Padding(
           padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
           child: Container(
-            constraints: const BoxConstraints(maxHeight: 350),
+            constraints: const BoxConstraints(maxHeight: 225),
             decoration: BoxDecoration(
               color: Colors.white,
               borderRadius: BorderRadius.circular(12.0),
@@ -69,24 +69,29 @@ class _EmergencyContactTblState extends State<EmergencyContactTbl> {
                 }
 
                 var contacts = snapshot.data!.docs;
-                return ListView.separated(
-                  padding: EdgeInsets.zero,
-                  itemCount: contacts.length,
-                  separatorBuilder: (context, index) => const Divider(height: 1),
-                  itemBuilder: (context, index) {
-                    var contact = contacts[index];
-                    var contId = contact.id;
-                    var contName = contact['name'];
-                    var contNum = contact['phoneNumber'];
+                return LayoutBuilder(
+                    builder: (context, constraints) {
+                      return ListView.separated(
+                        padding: EdgeInsets.zero,
+                        itemCount: contacts.length,
+                        shrinkWrap: true, // Makes the list height fit to content
+                        separatorBuilder: (context, index) => const Divider(height: 1),
+                        itemBuilder: (context, index) {
+                          var contact = contacts[index];
+                          var contId = contact.id;
+                          var contName = contact['name'];
+                          var contNum = contact['phoneNumber'];
 
-                    return _buildContactListTile(
-                        context,
-                        deviceId,
-                        contId,
-                        contName,
-                        contNum
-                    );
-                  },
+                          return _buildContactListTile(
+                              context,
+                              deviceId,
+                              contId,
+                              contName,
+                              contNum
+                          );
+                        },
+                      );
+                    }
                 );
               },
             ),
@@ -162,6 +167,8 @@ class _EmergencyContactTblState extends State<EmergencyContactTbl> {
           fontFamily: 'Nunito',
           color: Colors.grey[600],
         ),
+        maxLines: 1,
+        overflow: TextOverflow.ellipsis,
       ),
       trailing: _buildActions(context, deviceId, contactId, name, phoneNumber),
     );
@@ -245,20 +252,7 @@ class _EmergencyContactTblState extends State<EmergencyContactTbl> {
           tooltip: 'Delete Contact',
           onPressed: isEditable
               ? () async {
-            try {
-              await deleteContact(context, deviceId, contactId, name);
-              if (context.mounted) {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(content: Text("Contact deleted")),
-                );
-              }
-            } catch (e) {
-              if (context.mounted) {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(content: Text("Failed to delete contact")),
-                );
-              }
-            }
+            await deleteContact(context, deviceId, contactId, name);
           }
               : null,
         ),

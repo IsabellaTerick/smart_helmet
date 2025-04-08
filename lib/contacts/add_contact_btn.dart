@@ -59,6 +59,7 @@ class _AddContactBtnState extends State<AddContactBtn> {
         children: [
           SizedBox(
             width: double.infinity,
+            height: 50,
             child: ElevatedButton(
               onPressed: _isButtonEnabled
                   ? () {

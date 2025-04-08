@@ -38,6 +38,10 @@ class ModeSynchronizer {
       _currentMode = mode;
       _modeController.add(mode); // Notify listeners of the mode change
       print("Initialized current mode from Firestore: $_currentMode");
+
+      // TODO: if mode = crash, show popup asking user if they want to confirm safety
+
+
     } else {
       print("No valid mode found in Firestore. Defaulting to 'safe'.");
     }
