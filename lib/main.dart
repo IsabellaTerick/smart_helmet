@@ -91,6 +91,8 @@ class MyHomePageState extends State<MyHomePage> {
     WidgetsBinding.instance.addPostFrameCallback((_) async {
       _bluetoothService.scanAndConnect(context);
 
+      await _modeSynchronizer.checkInitialModeAndShowDialog(context);
+
       String? userName = await _firebaseService.getUserName();
       print("Username: ${userName}");
       if (userName == null || userName.isEmpty) {

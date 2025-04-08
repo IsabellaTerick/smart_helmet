@@ -8,14 +8,13 @@ Future<bool> showSafeConfirmationDialog(BuildContext context) async {
       return AlertDialog(
         title: const Text("Safety Confirmation Alert"),
         content: const Text("Your emergency contacts were alerted of your crash. If you no longer need assistance"
-            "and don't need them to track your location, would you like to notify them of your safety?"),
+            " and don't need them to track your location, would you like to notify them of your safety?"),
         actions: [
           TextButton(
             onPressed: () {
               Navigator.of(context).pop(false); // User canceled
             },
-            style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
-            child: const Text("No", style: TextStyle(color: Colors.white)),
+            child: const Text("No"),
           ),
           TextButton(
             onPressed: () {

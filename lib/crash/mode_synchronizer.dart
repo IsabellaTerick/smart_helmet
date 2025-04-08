@@ -19,9 +19,16 @@ class ModeSynchronizer {
   String _currentMode = "safe"; // Default mode is safe
   Position? crashDetectedLocation;
   StreamSubscription<Position>? positionStream;
+  bool _initialCheckDone = false;
+
+  // Add a Completer to track initialization
+  final Completer<void> _initCompleter = Completer<void>();
+  Future<void> get initialized => _initCompleter.future;
 
   // Public getter for the mode stream
   Stream<String> get modeStream => _modeController.stream;
+  // Public getter for current mode
+  String get currentMode => _currentMode;
 
   FirebaseService firebaseService = FirebaseService();
   TwilioService twilioService = TwilioService();
@@ -33,14 +40,50 @@ class ModeSynchronizer {
   }
 
   Future<void> _initializeCurrentMode() async {
-    // Fetch the current mode from Firestore
-    String? mode = await firebaseService.getMode();
-    if (mode != null && (mode == "safe" || mode == "crash")) {
-      _currentMode = mode;
-      _modeController.add(mode); // Notify listeners of the mode change
-      print("Initialized current mode from Firestore: $_currentMode");
-    } else {
-      print("No valid mode found in Firestore. Defaulting to 'safe'.");
+    try {
+      // Fetch the current mode from Firestore
+      String? mode = await firebaseService.getMode();
+      if (mode != null && (mode == "safe" || mode == "crash")) {
+        _currentMode = mode;
+        _modeController.add(mode); // Notify listeners of the mode change
+        print("Initialized current mode from Firestore: $_currentMode");
+      } else {
+        print("No valid mode found in Firestore. Defaulting to 'safe'.");
+      }
+    } catch (e) {
+      print("Error initializing current mode: $e");
+    } finally {
+      // Complete the initialization regardless of success or failure
+      _initCompleter.complete();
+    }
+  }
+
+  // Call this method from the main page after build is complete
+  Future<void> checkInitialModeAndShowDialog(BuildContext context) async {
+    if (_initialCheckDone) return;
+
+    // Wait for initialization to complete before proceeding
+    await initialized;
+
+    _initialCheckDone = true;
+
+    if (_currentMode == "crash") {
+      // Show safe confirmation dialog if we're in crash mode
+      print("Initial mode is crash, showing safe confirmation dialog");
+      // Use Future.delayed to ensure this runs after the current build cycle
+      // Use Future.delayed to ensure this runs after the current build cycle
+      Future.delayed(Duration.zero, () async {
+        // Show the dialog and get the result
+        bool changeModeToSafe = await showSafeConfirmationDialog(context);
+
+        // If user confirmed, set mode to safe
+        if (changeModeToSafe) {
+          print("User confirmed safety, changing mode to safe");
+          setMode(context, "safe");
+        } else {
+          print("User canceled safety confirmation, staying in crash mode");
+        }
+      });
     }
   }
 
@@ -155,7 +198,6 @@ class ModeSynchronizer {
     // Check if the user has moved more than 402 meters (quarter mile)
     if (distanceInMeters > 402) {
       String googleMapsUrl = "https://maps.google.com/?q=${currentPosition.latitude},${currentPosition.longitude}";
-      String moveMessage = "User is on the move: $googleMapsUrl";
       twilioService.sendUpdateSMS(context, googleMapsUrl);
 
       // Stop monitoring location changes

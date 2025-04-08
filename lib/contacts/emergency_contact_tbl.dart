@@ -3,7 +3,6 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import '../services/device_id_service.dart';
 import './contact_service.dart';
 import '../crash/mode_synchronizer.dart';
-import '../services/firebase_service.dart';
 
 class EmergencyContactTbl extends StatefulWidget {
   final ModeSynchronizer modeSynchronizer;
@@ -46,7 +45,7 @@ class _EmergencyContactTblState extends State<EmergencyContactTbl> {
               borderRadius: BorderRadius.circular(12.0),
               boxShadow: [
                 BoxShadow(
-                  color: Colors.grey.withOpacity(0.2),
+                  color: Colors.grey,
                   spreadRadius: 1,
                   blurRadius: 6,
                   offset: const Offset(0, 3),
