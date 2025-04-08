@@ -82,7 +82,7 @@ class CrashMsgState extends State<CrashMsg> {
       child: Container(
         padding: EdgeInsets.all(15.0),
         child: Card(
-          elevation: 2.0,
+          elevation: 5.0,
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(16.0),
           ),

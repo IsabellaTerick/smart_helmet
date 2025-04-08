@@ -78,6 +78,7 @@ class HelpGuideDialog extends StatelessWidget {
           // Content
           Flexible(
             child: SingleChildScrollView(
+              physics: ClampingScrollPhysics(),
               padding: const EdgeInsets.all(16.0),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,

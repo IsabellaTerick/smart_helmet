@@ -61,23 +61,51 @@ Future<void> editCrashMessageDialog(BuildContext context, String? deviceId, Stri
                 },
                 child: const Text("Cancel"),
               ),
+              TextButton(
+                onPressed: () async {
+                  try {
+                    // Get device ID if not provided
+                    String currentDeviceId = deviceId ?? await getOrGenDeviceId();
+
+                    // Reference to the contacts collection in Firestore
+                    CollectionReference contacts = FirebaseFirestore.instance
+                        .collection(currentDeviceId)
+                        .doc('contacts')
+                        .collection('list');
+
+                    if (contactId != null) {
+                      // Update the crash message in Firestore
+                      await contacts.doc(contactId).update({
+                        'customCrashMsg': null,
+                        'timestamp': FieldValue.serverTimestamp(),
+                      });
+
+                      // Trigger "Crash message updated" notification
+                      final notificationManager =
+                      Provider.of<NotificationManager>(context, listen: false);
+                      notificationManager.showNotification(
+                        message: "Crash message cleared",
+                        backgroundColor: Colors.grey,
+                        icon: Icons.message,
+                      );
+                    }
+
+                    // Close the dialog
+                    Navigator.pop(context);
+                  } catch (e) {
+                    print("Error updating crash message: $e");
+
+                    setState(() {
+                      errorMessage = "Failed to update crash message. Please try again.";
+                    });
+                  }
+                },
+                child: Text("Clear"),
+              ),
               ElevatedButton(
                 onPressed: () async {
                   String crashMessage = msgCtrl.text.trim();
-
-                  // // Validate crash message
-                  // if (crashMessage.isEmpty) {
-                  //   setState(() {
-                  //     errorMessage = "Please enter a crash message";
-                  //   });
-                  //   return;
-                  // }
-
                   try {
-                    setState(() {
-                      errorMessage = null;
-                    });
-
                     // Get device ID if not provided
                     String currentDeviceId = deviceId ?? await getOrGenDeviceId();
 

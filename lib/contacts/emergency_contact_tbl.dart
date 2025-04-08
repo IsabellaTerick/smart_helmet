@@ -212,36 +212,15 @@ class _EmergencyContactTblState extends State<EmergencyContactTbl> {
           ),
           tooltip: 'Edit Message',
           onPressed: isEditable
-              ? () async {
-            try {
-              await editContactCrashMsg(
+              ? () => editContactCrashMsg(
                   context,
                   deviceId,
                   contactId,
                   name,
                   phoneNumber
-              );
-              if (context.mounted) {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(
-                    content: Text("Crash message updated"),
-                    backgroundColor: Colors.grey,
-                  ),
-                );
-              }
-            } catch (e) {
-              if (context.mounted) {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(
-                    content: Text("Failed to update crash message"),
-                    backgroundColor: Colors.red,
-                  ),
-                );
-              }
-            }
-          }
-              : null,
-        ),
+            )
+                : null,
+          ),
 
         // Delete Contact Action
         IconButton(

@@ -68,6 +68,7 @@ class _AddContactBtnState extends State<AddContactBtn> {
               }
                   : null,
               style: ElevatedButton.styleFrom(
+                elevation: 5.0,
                 foregroundColor: Colors.white,
                 backgroundColor: _isButtonEnabled ? Colors.black54 : Colors.grey,
                 shape: RoundedRectangleBorder(
