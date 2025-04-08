@@ -118,14 +118,14 @@ class FirebaseService {
     try {
       final deviceId = await getOrGenDeviceId();
 
-      DocumentSnapshot snapshot = await FirebaseFirestore.instance
-          .collection('crashes')
-          .doc(deviceId)
+      DocumentSnapshot snapshot = await firestore
+          .collection(deviceId)
+          .doc('settings')
           .get();
 
       if (snapshot.exists && snapshot.data() != null) {
         final data = snapshot.data() as Map<String, dynamic>;
-        return data['initialCrashLocation'] as GeoPoint?;
+        return data['initialPosition'] as GeoPoint?;
       } else {
         return null;
       }
@@ -135,8 +135,58 @@ class FirebaseService {
     }
   }
 
+  // Save crash location to Firestore
+  Future<void> saveCrashLocation(double latitude, double longitude) async {
+    try {
+      String deviceId = await getOrGenDeviceId();
+      await firestore
+          .collection(deviceId)
+          .doc('settings')
+          .set({
+        'initialPosition': GeoPoint(latitude, longitude),
+        'crashTimestamp': FieldValue.serverTimestamp(),
+      },
+          SetOptions(merge: true));
 
-  // Retrieves a stream of the number of emergency contacts from Firestore
+      print("Saved crash location to Firestore: $latitude, $longitude");
+    } catch (e) {
+      print("Error saving crash location: $e");
+    }
+  }
+
+  // Clear crash location from Firestore
+  Future<void> clearCrashLocation() async {
+    try {
+      String deviceId = await getOrGenDeviceId();
+      await firestore
+          .collection(deviceId)
+          .doc('settings')
+          .update({
+        'initialPosition': FieldValue.delete(),
+        'crashTimestamp': FieldValue.delete(),
+      });
+
+      print("Cleared crash location from Firestore");
+    } catch (e) {
+      print("Error clearing crash location: $e");
+    }
+  }
+
+  // Update mode in Firestore
+  Future<void> updateMode(String newMode) async {
+    try {
+      String deviceId = await getOrGenDeviceId();
+      await firestore
+          .collection(deviceId)
+          .doc('settings')
+          .set({'mode': newMode}, SetOptions(merge: true));
+
+      print("Updated Firestore mode to: $newMode");
+    } catch (e) {
+      print("Error updating Firestore mode: $e");
+    }
+  }
+
   // Retrieves a stream of the number of emergency contacts from Firestore
   Stream<int> getEmergencyContactCountStream() async* {
     try {

@@ -1,9 +1,7 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:geolocator/geolocator.dart';
 import '../bluetooth/bluetooth_service.dart';
-import '../services/device_id_service.dart';
 import '../services/firebase_service.dart';
 import '../services/location_service.dart';
 import '../services/twilio_service.dart';
@@ -15,7 +13,8 @@ class ModeSynchronizer {
   final BluetoothService _bluetoothService;
   final SendStatus _sendStatus;
 
-  final StreamController<String> _modeController = StreamController<String>.broadcast();
+  final StreamController<String> _modeController =
+  StreamController<String>.broadcast();
   String _currentMode = "safe"; // Default mode is safe
   Position? crashDetectedLocation;
   StreamSubscription<Position>? positionStream;
@@ -40,6 +39,20 @@ class ModeSynchronizer {
     _initializeCrashLocation();
   }
 
+  void _setupMessageListener() {
+    _bluetoothService.setMessageListener((context, message) async {
+      if (message == "safe" || message == "crash") {
+        // Check if the received mode is different from the current mode
+        if (message != _currentMode) {
+          print("Received new mode from Bluetooth: $message");
+          setMode(context, message);
+        } else {
+          print("Ignoring duplicate mode update: $message");
+        }
+      }
+    });
+  }
+
   Future<void> _initializeCurrentMode() async {
     try {
       // Fetch the current mode from Firestore
@@ -59,8 +72,36 @@ class ModeSynchronizer {
     }
   }
 
+  Future<void> _initializeCrashLocation() async {
+    try {
+      // Fetch the crash location from Firestore
+      var geoPoint = await firebaseService.getCrashLocation();
+
+      if (geoPoint != null) {
+        crashDetectedLocation = Position(
+          latitude: geoPoint.latitude,
+          longitude: geoPoint.longitude,
+          timestamp: DateTime.now(),
+          accuracy: 0.0,
+          altitude: 0.0,
+          heading: 0.0,
+          speed: 0.0,
+          speedAccuracy: 0.0,
+          altitudeAccuracy: 0.0,
+          headingAccuracy: 0.0,
+        );
+
+        print("Crash location loaded into crashDetectedLocation.");
+      } else {
+        print("No crash location data found.");
+      }
+    } catch (e) {
+      print("Error initializing crashDetectedLocation: $e");
+    }
+  }
+
   // Call this method from the main page after build is complete
-  Future<void> checkInitialModeAndShowDialog(BuildContext context) async {
+  Future<void> handleCrashInitialization(BuildContext context) async {
     if (_initialCheckDone) return;
 
     // Wait for initialization to complete before proceeding
@@ -71,7 +112,7 @@ class ModeSynchronizer {
     if (_currentMode == "crash") {
       // Show safe confirmation dialog if we're in crash mode
       print("Initial mode is crash, showing safe confirmation dialog");
-      // Use Future.delayed to ensure this runs after the current build cycle
+
       // Use Future.delayed to ensure this runs after the current build cycle
       Future.delayed(Duration.zero, () async {
         // Show the dialog and get the result
@@ -82,55 +123,18 @@ class ModeSynchronizer {
           print("User confirmed safety, changing mode to safe");
           setMode(context, "safe");
         } else {
-          print("User canceled safety confirmation, staying in crash mode");
+          print("User canceled safety confirmation,"
+              " staying in crash mode and tracking location");
+          // Start monitoring location changes
+          if (crashDetectedLocation != null) {
+            positionStream = LocationService.getPositionStream()
+                .listen((Position currentPosition) {
+              _checkIfUserIsOnTheMove(context, currentPosition);
+            });
+          }
         }
       });
     }
-  }
-
-  Future<void> _initializeCrashLocation() async {
-    // Fetch the current mode from Firestore
-    Future<void> _initializeCrashLocation() async {
-      try {
-        GeoPoint? geoPoint = await firebaseService.getCrashLocation();
-
-        if (geoPoint != null) {
-          crashDetectedLocation = Position(
-            latitude: geoPoint.latitude,
-            longitude: geoPoint.longitude,
-            timestamp: DateTime.now(),
-            accuracy: 0.0,
-            altitude: 0.0,
-            heading: 0.0,
-            speed: 0.0,
-            speedAccuracy: 0.0,
-            altitudeAccuracy: 0.0,
-            headingAccuracy: 0.0,
-          );
-
-          print("Crash location loaded into crashDetectedLocation.");
-        } else {
-          print("No crash location data found.");
-        }
-      } catch (e) {
-        print("Error initializing crashDetectedLocation: $e");
-      }
-    }
-
-  }
-
-  void _setupMessageListener() {
-    _bluetoothService.setMessageListener((context, message) async {
-      if (message == "safe" || message == "crash") {
-        // Check if the received mode is different from the current mode
-        if (message != _currentMode) {
-          print("Received new mode from Bluetooth: $message");
-          setMode(context, message);
-        } else {
-          print("Ignoring duplicate mode update: $message");
-        }
-      }
-    });
   }
 
   void _updateMode(String newMode) {
@@ -140,7 +144,7 @@ class ModeSynchronizer {
       print("Mode updated to: $newMode");
 
       // Update mode in Firestore
-      _updateFirestoreMode(newMode);
+      firebaseService.updateMode(newMode);
 
       // Send the mode to the microcontroller
       _sendStatus.sendMode(newMode);
@@ -150,7 +154,7 @@ class ModeSynchronizer {
   void setMode(BuildContext context, String mode) {
     if (mode == "safe" || mode == "crash") {
       print("Setting mode: $mode");
-      if (mode != _currentMode) { ////
+      if (mode != _currentMode) {
         _updateMode(mode); // Update the local mode
         if (mode == "crash") {
           _textCrashAlert(context);
@@ -158,32 +162,6 @@ class ModeSynchronizer {
           _textSafetyConfirmation(context);
         }
       }
-    }
-  }
-
-  Future<void> _updateFirestoreMode(String newMode) async {
-    try {
-      String deviceId = await getOrGenDeviceId();
-      await FirebaseFirestore.instance
-          .collection(deviceId)
-          .doc('settings')
-          .set({'mode': newMode}, SetOptions(merge: true));
-      print("Updated Firestore mode to: $newMode");
-    } catch (e) {
-      print("Error updating Firestore mode: $e");
-    }
-  }
-
-  Future<void> _updateFirestoreInitLoc(Position position) async {
-    try {
-      String deviceId = await getOrGenDeviceId();
-      await FirebaseFirestore.instance
-          .collection(deviceId)
-          .doc('settings')
-          .set({'initialPosition': GeoPoint(position.latitude, position.longitude)}, SetOptions(merge: true));
-      print("Updated Firestore mode to: $position");
-    } catch (e) {
-      print("Error updating Firestore mode: $e");
     }
   }
 
@@ -202,16 +180,18 @@ class ModeSynchronizer {
       Position position = await LocationService.getCurrentPosition();
       crashDetectedLocation = position;
 
-      // Storing inital crash position into Firestore
-      _updateFirestoreInitLoc(position);
+      // Storing initial crash position into Firestore
+      await firebaseService.saveCrashLocation(position.latitude, position.longitude);
 
       // Start monitoring location changes
-      positionStream = LocationService.getPositionStream().listen((Position currentPosition) {
+      positionStream = LocationService.getPositionStream()
+          .listen((Position currentPosition) {
         _checkIfUserIsOnTheMove(context, currentPosition);
       });
 
       // Send the crash SMS
-      String googleMapsUrl = "https://maps.google.com/?q=${position.latitude},${position.longitude}";
+      String googleMapsUrl =
+          "https://maps.google.com/?q=${position.latitude},${position.longitude}";
       twilioService.sendCrashSMS(context, googleMapsUrl);
     } catch (e) {
       print("Error sending crash alert: $e");
@@ -225,15 +205,25 @@ class ModeSynchronizer {
       return;
     }
 
+    // Clear crash location from Firebase
+    await firebaseService.clearCrashLocation();
+
+    // Clear local crash location
+    crashDetectedLocation = null;
+
     // Stop monitoring location changes
-    positionStream?.cancel();
+    await positionStream?.cancel();
 
     // Send the safety confirmation SMS
     twilioService.sendSafeSMS(context);
   }
 
-  void _checkIfUserIsOnTheMove(BuildContext context, Position currentPosition) async {
-    if (_currentMode == "safe" || crashDetectedLocation == null) return;
+  void _checkIfUserIsOnTheMove(
+      BuildContext context, Position currentPosition) async {
+    if (_currentMode == "safe" ||
+        crashDetectedLocation == null) {
+      return;
+    }
 
     // Calculate the distance between the crash location and the current location
     double distanceInMeters = LocationService.calculateDistance(
@@ -245,11 +235,17 @@ class ModeSynchronizer {
 
     // Check if the user has moved more than 402 meters (quarter mile)
     if (distanceInMeters > 402) {
-      String googleMapsUrl = "https://maps.google.com/?q=${currentPosition.latitude},${currentPosition.longitude}";
+      print("User has moved more than 402 meters from crash location. Sending update SMS.");
+
+      // Send the update SMS with current location
+      String googleMapsUrl =
+          "https://maps.google.com/?q=${currentPosition.latitude},${currentPosition.longitude}";
       twilioService.sendUpdateSMS(context, googleMapsUrl);
 
-      // Stop monitoring location changes
-      positionStream?.cancel();
+      // Clear crash location from Firebase
+      crashDetectedLocation = null;
+      await firebaseService.clearCrashLocation();
+      await positionStream?.cancel();
     }
   }
 

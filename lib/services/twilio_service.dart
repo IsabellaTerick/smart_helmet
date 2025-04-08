@@ -12,7 +12,7 @@ class TwilioService {
   TwilioService() {
     twilioFlutter = TwilioFlutter(
       accountSid: 'AC5ef8faf67b7a79889cefdfb6ac89d1e4',
-      authToken: '736d887d650a9d17b1251e98ba856504',
+      authToken: '649b23ee2074d621c9af554f006c4453',
       twilioNumber: '+18667192795',
     );
   }
