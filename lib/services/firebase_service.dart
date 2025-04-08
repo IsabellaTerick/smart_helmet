@@ -113,6 +113,29 @@ class FirebaseService {
     return null; // Return null if no mode is found or an error occurs
   }
 
+  // Retrieves the crash location
+  Future<GeoPoint?> getCrashLocation() async {
+    try {
+      final deviceId = await getOrGenDeviceId();
+
+      DocumentSnapshot snapshot = await FirebaseFirestore.instance
+          .collection('crashes')
+          .doc(deviceId)
+          .get();
+
+      if (snapshot.exists && snapshot.data() != null) {
+        final data = snapshot.data() as Map<String, dynamic>;
+        return data['initialCrashLocation'] as GeoPoint?;
+      } else {
+        return null;
+      }
+    } catch (e) {
+      print("Failed to retrieve crash location: $e");
+      return null;
+    }
+  }
+
+
   // Retrieves a stream of the number of emergency contacts from Firestore
   // Retrieves a stream of the number of emergency contacts from Firestore
   Stream<int> getEmergencyContactCountStream() async* {

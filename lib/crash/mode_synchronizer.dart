@@ -37,6 +37,7 @@ class ModeSynchronizer {
       : _sendStatus = SendStatus(_bluetoothService) {
     _initializeCurrentMode();
     _setupMessageListener();
+    _initializeCrashLocation();
   }
 
   Future<void> _initializeCurrentMode() async {
@@ -85,6 +86,37 @@ class ModeSynchronizer {
         }
       });
     }
+  }
+
+  Future<void> _initializeCrashLocation() async {
+    // Fetch the current mode from Firestore
+    Future<void> _initializeCrashLocation() async {
+      try {
+        GeoPoint? geoPoint = await firebaseService.getCrashLocation();
+
+        if (geoPoint != null) {
+          crashDetectedLocation = Position(
+            latitude: geoPoint.latitude,
+            longitude: geoPoint.longitude,
+            timestamp: DateTime.now(),
+            accuracy: 0.0,
+            altitude: 0.0,
+            heading: 0.0,
+            speed: 0.0,
+            speedAccuracy: 0.0,
+            altitudeAccuracy: 0.0,
+            headingAccuracy: 0.0,
+          );
+
+          print("Crash location loaded into crashDetectedLocation.");
+        } else {
+          print("No crash location data found.");
+        }
+      } catch (e) {
+        print("Error initializing crashDetectedLocation: $e");
+      }
+    }
+
   }
 
   void _setupMessageListener() {
@@ -142,6 +174,19 @@ class ModeSynchronizer {
     }
   }
 
+  Future<void> _updateFirestoreInitLoc(Position position) async {
+    try {
+      String deviceId = await getOrGenDeviceId();
+      await FirebaseFirestore.instance
+          .collection(deviceId)
+          .doc('settings')
+          .set({'initialPosition': GeoPoint(position.latitude, position.longitude)}, SetOptions(merge: true));
+      print("Updated Firestore mode to: $position");
+    } catch (e) {
+      print("Error updating Firestore mode: $e");
+    }
+  }
+
   Future<void> _textCrashAlert(BuildContext context) async {
     try {
       // Check if SMS is enabled
@@ -156,6 +201,9 @@ class ModeSynchronizer {
       // Get the user's current location
       Position position = await LocationService.getCurrentPosition();
       crashDetectedLocation = position;
+
+      // Storing inital crash position into Firestore
+      _updateFirestoreInitLoc(position);
 
       // Start monitoring location changes
       positionStream = LocationService.getPositionStream().listen((Position currentPosition) {
