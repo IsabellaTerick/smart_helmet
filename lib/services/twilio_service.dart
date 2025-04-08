@@ -57,9 +57,7 @@ class TwilioService {
         String? link,
       }) async {
     try {
-      String? userName = await firebaseService.getUserName();
       String? mode = await firebaseService.getMode();
-      String? contactCrashMsg;
       List<String?>? phoneNums = await firebaseService.getEmergencyContactNumbers();
       List<String> contacts = (phoneNums ?? []).whereType<String>().toList();
 

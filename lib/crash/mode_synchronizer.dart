@@ -8,6 +8,7 @@ import '../services/firebase_service.dart';
 import '../services/location_service.dart';
 import '../services/twilio_service.dart';
 import './send_status.dart';
+import './safe_confirm_popup.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class ModeSynchronizer {
@@ -38,10 +39,6 @@ class ModeSynchronizer {
       _currentMode = mode;
       _modeController.add(mode); // Notify listeners of the mode change
       print("Initialized current mode from Firestore: $_currentMode");
-
-      // TODO: if mode = crash, show popup asking user if they want to confirm safety
-
-
     } else {
       print("No valid mode found in Firestore. Defaulting to 'safe'.");
     }
