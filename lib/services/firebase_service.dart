@@ -4,6 +4,24 @@ import '../services/device_id_service.dart';
 class FirebaseService {
   final FirebaseFirestore firestore = FirebaseFirestore.instance;
 
+  // Used for UPDATE polling
+  Future<void> registerDevice() async {
+    try {
+      String deviceId = await getOrGenDeviceId();
+      await firestore
+          .collection('device_registry')
+          .doc(deviceId)
+          .set({
+        'lastActive': FieldValue.serverTimestamp(),
+      });
+
+      print("Device registered in global registry");
+    } catch (e) {
+      print("Error registering device: $e");
+    }
+  }
+
+
   // Retrieves the username from Firestore
   Future<String?> getUserName() async {
     try {

@@ -16,13 +16,22 @@ import './notifications/notification_manager.dart';
 import './notifications/notification_banner.dart';
 import './settings/edit_settings_popup.dart';
 import './services/firebase_service.dart';
+import './services/update_location_service.dart';
 import 'firebase_options.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+
   await Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform,
   );
+
+  // Register device in the global registry
+  await FirebaseService().registerDevice();
+
+  // Initialize UpdateLocationService
+  await UpdateLocationService().initialize();
+
   runApp(
     ChangeNotifierProvider(
       create: (_) => NotificationManager(),
