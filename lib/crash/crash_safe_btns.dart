@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import './mode_synchronizer.dart';
 import './crash_confirm_popup.dart';
+import './crash_confirm_popup_timer.dart';
 
 class CrashSafeBtns extends StatefulWidget {
   final ModeSynchronizer modeSynchronizer;
@@ -26,7 +27,7 @@ class _CrashSafeBtnsState extends State<CrashSafeBtns> {
 
   Future<void> _handleCrashButtonPress(BuildContext context) async {
     // Show confirmation dialog before sending crash alert
-    bool? userConfirmed = await showCrashConfirmationDialog(context);
+    bool? userConfirmed = await showCrashConfirmationTimerDialog(context);
 
     if (userConfirmed == true) {
       widget.modeSynchronizer.setMode(context, "crash");

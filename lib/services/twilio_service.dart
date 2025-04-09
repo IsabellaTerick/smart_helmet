@@ -57,9 +57,24 @@ class TwilioService {
         String? link,
       }) async {
     try {
-      String? mode = await firebaseService.getMode();
       List<String?>? phoneNums = await firebaseService.getEmergencyContactNumbers();
       List<String> contacts = (phoneNums ?? []).whereType<String>().toList();
+
+      // Check if there are any contacts
+      if (contacts.isEmpty) {
+        print("No contacts specified");
+
+        // Show notification that no contacts are specified
+        final notificationManager = Provider.of<NotificationManager>(context, listen: false);
+        notificationManager.showNotification(
+          message: "No contacts specified",
+          backgroundColor: Colors.grey,
+          icon: Icons.warning,
+        );
+        return false; // Return false since no messages were sent
+      }
+
+      String? mode = await firebaseService.getMode();
 
       bool allMessagesSent = true; // Track if all messages were sent successfully
 
