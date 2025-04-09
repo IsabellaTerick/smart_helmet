@@ -62,7 +62,7 @@ class _CrashSafeBtnsState extends State<CrashSafeBtns> {
                   ),
                 ),
                 child: const Text(
-                  'CRASH ALERT!',
+                  'SEND CRASH ALERT',
                   style: TextStyle(
                     fontFamily: 'Nunito',
                     fontWeight: FontWeight.bold,
@@ -88,7 +88,7 @@ class _CrashSafeBtnsState extends State<CrashSafeBtns> {
                 ),
               ),
               child: const Text(
-                'SAFE ALERT!',
+                'CONFIRM SAFETY',
                 style: TextStyle(
                   fontFamily: 'Nunito',
                   fontWeight: FontWeight.bold,
