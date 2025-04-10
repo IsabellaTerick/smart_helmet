@@ -80,7 +80,7 @@ class HelpContent extends StatelessWidget {
               _buildNumberedPoint(2, 'Default Crash Message:', 'Customize the default message that will be included in crash alerts unless a personalized message is assigned.'),
               _buildNumberedPoint(3, 'Add Emergency Contacts:', 'You can add up to 5 contacts by entering their names and phone numbers. Each contact may have their own custom crash message.'),
               _buildNumberedPoint(4, 'Connect to Bluetooth:', 'Tap the Bluetooth icon in the top-right corner to connect to your Smart Helmet. The helmet and app must remain connected via Bluetooth for crash detection and helmet-triggered alerts to function. You can still send crash alerts manually from the app even if the helmet is disconnected, but crash detection through impact or the helmet button will not function unless Bluetooth is connected.'),
-              _buildNumberedPoint(5, 'Test the System:', 'Use the "Crash" and "Safe" buttons in the app to test how alerts are sent. This helps verify everything is working correctly and gives your contacts a preview of what they might receive in an emergency.'),
+              _buildNumberedPoint(5, 'Test the System:', 'Use the "Send Crash Alert" and "Confirm Safety" buttons in the app to test how alerts are sent. This helps verify everything is working correctly and gives your contacts a preview of what they might receive in an emergency.'),
             ],
           ),
         ),
@@ -213,7 +213,7 @@ class HelpContent extends StatelessWidget {
                 style: TextStyle(fontFamily: 'Nunito'),
               ),
               const SizedBox(height: 8),
-              _buildBulletPoint('', 'Tap the "Send Safety Confirmation" button in the app, or'),
+              _buildBulletPoint('', 'Tap the "Confirm Safety" button in the app, or'),
               _buildBulletPoint('', 'Hold the helmet\'s interact button for 5 seconds until the flashing signal lights stop.'),
               const SizedBox(height: 8),
               const Text(

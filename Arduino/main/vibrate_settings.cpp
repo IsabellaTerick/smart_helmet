@@ -1,4 +1,3 @@
-#include <Arduino.h>
 #include "vibrate_settings.h"
 
 const int ledPin = 2;        // Onboard blue LED
@@ -17,7 +16,7 @@ void applyVibration(int mode, int durationMs) {
   int duty = 0;
 
   switch (mode) {
-    case 1: duty = 150; break;    // Low power vibration
+    case 1: duty = 150; break;   // Low power vibration
     case 2: duty = 255; break;   // Full power
     default: duty = 0; break;    // No vibration
   }

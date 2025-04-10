@@ -55,13 +55,13 @@ Future<void> editCrashMessageDialog(BuildContext context, String? deviceId, Stri
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    "Edit Emergency Message",
+                    "Edit Custom Crash Message",
                     style: Theme.of(context).textTheme.headlineSmall,
                   ),
                   const SizedBox(height: 4),
                   Text(
-                    "The message will be sent to this emergency contact."
-                        "If no message is entered, the default message will be sent",
+                    "Your custom crash will be sent to this contact in the event of a crash."
+                        " If left blank, your default crash message will be sent instead.",
                     style: Theme.of(context).textTheme.bodySmall?.copyWith(
                       color: Colors.grey[600],
                     ),
@@ -71,7 +71,7 @@ Future<void> editCrashMessageDialog(BuildContext context, String? deviceId, Stri
                     child: TextField(
                       controller: msgCtrl,
                       decoration: InputDecoration(
-                        hintText: "Enter your emergency message here...",
+                        hintText: "Enter your custom crash message...",
                         border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(8),
                         ),
