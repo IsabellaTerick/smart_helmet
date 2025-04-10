@@ -112,7 +112,7 @@ class _EmergencyContactTblState extends State<EmergencyContactTbl> {
           ),
           const SizedBox(height: 16),
           Text(
-            'No emergency contacts added yet',
+            'No emergency contacts added',
             style: TextStyle(
               fontFamily: 'Nunito',
               fontSize: 16,

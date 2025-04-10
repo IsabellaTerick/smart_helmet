@@ -157,7 +157,10 @@ class TwilioService {
     String? userName = await firebaseService.getUserName();
 
     String mainMessage =
-        'Alert from Smart Helmet: ${userName ?? "Unknown User"} has been involved in a crash. Please check on them and contact emergency.';
+        'Alert from Smart Helmet: ${userName ?? "Unknown User"} may have been involved in a crash. '
+        'Please check on them as soon as possible or contact emergency services if necessary. '
+        'The location of their crash is below.'
+        '\n\nReply UPDATE to receive their latest location.';
 
     await _sendMessagesToContacts(
       context,
@@ -172,7 +175,9 @@ class TwilioService {
     String? userName = await firebaseService.getUserName();
 
     String mainMessage =
-        'Alert from Smart Helmet: ${userName ?? "Unknown User"} is on the move.';
+        'Alert from Smart Helmet: ${userName ?? "Unknown User"} has relocated since their possible crash. '
+        'Their current location is below. '
+        '\n\nReply UPDATE to receive their latest location.';
 
     await _sendMessagesToContacts(
       context,
@@ -186,7 +191,10 @@ class TwilioService {
     String? userName = await firebaseService.getUserName();
 
     String mainMessage =
-        'Alert from Smart Helmet: ${userName ?? "Unknown User"} has confirmed their safety. No further action needed at this time.';
+        'Alert from Smart Helmet: ${userName ?? "Unknown User"} has confirmed their safety. '
+        'No further action is necessary. '
+        '\n\nLocation tracking has been disabled and replying UPDATE will no longer return their location. '
+        '\n\nThank you for staying alert.';
 
     await _sendMessagesToContacts(
       context,

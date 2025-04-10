@@ -42,14 +42,14 @@ Future<void> addContactDialog(BuildContext context,
                 TextField(
                   controller: nameCtrl,
                   decoration: InputDecoration(
-                    labelText: "Name",
+                    labelText: "Name:",
                     errorText: errorMessage == "Please enter a name" ? errorMessage : null,
                   ),
                 ),
                 TextField(
                   controller: numCtrl,
                   decoration: InputDecoration(
-                    labelText: "Phone Number",
+                    labelText: "Phone Number:",
                     errorText: errorMessage == "Please enter a valid 10-digit phone number" ||
                         errorMessage == "This phone number is already in use"
                         ? errorMessage

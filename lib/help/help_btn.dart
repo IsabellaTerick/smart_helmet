@@ -59,7 +59,7 @@ class HelpGuideDialog extends StatelessWidget {
               children: [
                 const Expanded(
                   child: Text(
-                    'Help',
+                    'Smart Helmet App Help Guide',
                     style: TextStyle(
                       fontFamily: 'Nunito',
                       fontSize: 18,
@@ -78,7 +78,7 @@ class HelpGuideDialog extends StatelessWidget {
           // Content
           Flexible(
             child: SingleChildScrollView(
-              physics: ClampingScrollPhysics(),
+              physics: const ClampingScrollPhysics(),
               padding: const EdgeInsets.all(16.0),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -93,7 +93,7 @@ class HelpGuideDialog extends StatelessWidget {
                   ),
                   SizedBox(height: 8),
                   Text(
-                    'Tap on any section below to learn more about how the app keeps you connected and safe in case of a crash.',
+                    'Welcome to the Smart Helmet App Help Guide! This guide is your resource for understanding how your helmet and app work together to help keep you safe and connected. Tap any section to explore more.',
                     style: TextStyle(
                       fontFamily: 'Nunito',
                       fontSize: 14,

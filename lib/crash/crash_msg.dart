@@ -132,7 +132,7 @@ class CrashMsgState extends State<CrashMsg> {
                     ),
                     contentPadding:
                         EdgeInsets.symmetric(horizontal: 16.0, vertical: 12.0),
-                    hintText: 'Enter custom crash message...',
+                    hintText: 'Enter your default crash message...',
                     hintStyle:
                         TextStyle(fontFamily: 'Nunito', color: Colors.black38),
                   ))
