@@ -159,8 +159,8 @@ class TwilioService {
     String mainMessage =
         'Alert from Smart Helmet: ${userName ?? "Unknown User"} may have been involved in a crash. '
         'Please check on them as soon as possible or contact emergency services if necessary. '
-        'The location of their crash is below.'
-        '\n\nReply UPDATE to receive their latest location.';
+        'The location of the crash is below.'
+        '\n\nReply UPDATE to receive their current location.';
 
     await _sendMessagesToContacts(
       context,
@@ -192,9 +192,9 @@ class TwilioService {
 
     String mainMessage =
         'Alert from Smart Helmet: ${userName ?? "Unknown User"} has confirmed their safety. '
-        'No further action is necessary. '
-        '\n\nLocation tracking has been disabled and replying UPDATE will no longer return their location. '
-        '\n\nThank you for staying alert.';
+        'No further action is necessary.'
+        '\n\nLocation tracking has been disabled and replying UPDATE will no longer return their location.'
+        '\n\nThank you for staying alert!';
 
     await _sendMessagesToContacts(
       context,
