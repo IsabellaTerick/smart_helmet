@@ -1,26 +1,49 @@
 #include "LED_handler.h"
+#include "forward_detection.h"
+#include "blindspot_detection.h"
 
 extern bool safeFlashing;
 
 void setupLEDHandler() {
-  pinMode(LED_PIN, OUTPUT); // Configure LED pin
-  digitalWrite(LED_PIN, ledState); // Set initial LED state
+  // Set LED pins as output
+  pinMode(LEFT_LED_PIN, OUTPUT);
+  pinMode(RIGHT_LED_PIN, OUTPUT);
+  pinMode(FORWARD_LED_PIN, OUTPUT);
+  
+  //Set initial LED state
+  //digitalWrite(LEFT_LED_PIN, ledState);
+
+
+
+
 }
 
 void updateLED() {
   if (currentMode == "safe") {
     // Blind spot and forward collision detection
     if (safeFlashing) {
-      digitalWrite(LED_PIN, (millis() / 250) % 2 ? HIGH : LOW);
+      digitalWrite(LEFT_LED_PIN, (millis() / 250) % 2 ? HIGH : LOW);
+      digitalWrite(RIGHT_LED_PIN, (millis() / 250) % 2 ? HIGH : LOW);
+      digitalWrite(FORWARD_LED_PIN, (millis() / 250) % 2 ? HIGH : LOW);
+
     } else {
       //// TODO: put Blind Spot and Forward Collision here
-      digitalWrite(LED_PIN, LOW);
+      updateBlindSpotTest();
+      updateForwardTest();
+
     }
   } else if (currentMode == "cancel") {
     // Flash LED
-    digitalWrite(LED_PIN, (millis() / 250) % 2 ? HIGH : LOW);
+    digitalWrite(LEFT_LED_PIN, (millis() / 250) % 2 ? HIGH : LOW);
+    digitalWrite(RIGHT_LED_PIN, (millis() / 250) % 2 ? HIGH : LOW);
+    digitalWrite(FORWARD_LED_PIN, (millis() / 250) % 2 ? HIGH : LOW);
+
+
   } else if (currentMode == "crash") {
     // Pulse LED
-    digitalWrite(LED_PIN, (millis() / 1000) % 2 ? HIGH : LOW);
+    digitalWrite(LEFT_LED_PIN, (millis() / 1000) % 2 ? HIGH : LOW);
+    digitalWrite(RIGHT_LED_PIN, (millis() / 1000) % 2 ? HIGH : LOW);
+    digitalWrite(FORWARD_LED_PIN, (millis() / 1000) % 2 ? HIGH : LOW);
+
   }
 }

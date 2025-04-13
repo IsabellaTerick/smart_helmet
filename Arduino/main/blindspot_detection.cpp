@@ -12,6 +12,11 @@ void initBlindSpotTest() {
   // Setup PWM for each LRA
   ledcAttach(LEFT_LRA, pwmFreq, pwmRes);
   ledcAttach(RIGHT_LRA, pwmFreq, pwmRes);
+
+  // Set LED pins as output
+  pinMode(LEFT_LED_PIN, OUTPUT);
+  pinMode(RIGHT_LED_PIN, OUTPUT);
+
 }
 
 void updateBlindSpotTest() {
@@ -25,13 +30,15 @@ void updateBlindSpotTest() {
   float rightVolt = rightAdc * (3.3 / 4095.0);
   float rightCm = (rightVolt / 0.006445) * 2.54;
 
-  Serial.print("Left: ");
-  Serial.print(leftCm, 1);
-  Serial.print(" cm | Right: ");
-  Serial.print(rightCm, 1);
-  Serial.println(" cm");
-
   // Trigger vibration
-  ledcWrite(LEFT_LRA, leftCm < distanceThresholdCm ? 255 : 0);
-  ledcWrite(RIGHT_LRA, rightCm < distanceThresholdCm ? 255 : 0);
+  ledcWrite(LEFT_LRA, (leftCm < distanceThresholdCm) ? 255 : 0);
+  ledcWrite(RIGHT_LRA, (rightCm < distanceThresholdCm) ? 255 : 0);
+
+   // LEFT LED
+  digitalWrite(LEFT_LED_PIN, (leftCm < distanceThresholdCm) ? HIGH : LOW);
+
+  // RIGHT LED
+  digitalWrite(RIGHT_LED_PIN, (rightCm < distanceThresholdCm) ? HIGH : LOW);
+
+
 }

@@ -3,7 +3,9 @@
 
 #include <Arduino.h>
 
-#define LED_PIN 4 // GPIO pin for the LED
+#define LEFT_LED_PIN 26
+#define RIGHT_LED_PIN 25
+#define FORWARD_LED_PIN 27
 
 // External variables
 extern String currentMode;

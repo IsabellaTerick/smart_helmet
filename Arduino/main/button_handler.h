@@ -3,7 +3,7 @@
 
 #include <Arduino.h>
 
-#define BUTTON_PIN 2  // GPIO pin for the button
+#define BUTTON_PIN 4  // GPIO pin for the button
 
 // Button constants
 const unsigned long HOLD_THRESHOLD = 500; // 0.5 seconds for it to be considered not a tap
