@@ -59,6 +59,7 @@ class _AddContactBtnState extends State<AddContactBtn> {
         children: [
           SizedBox(
             width: double.infinity,
+            height: 50,
             child: ElevatedButton(
               onPressed: _isButtonEnabled
                   ? () {
@@ -67,6 +68,7 @@ class _AddContactBtnState extends State<AddContactBtn> {
               }
                   : null,
               style: ElevatedButton.styleFrom(
+                elevation: 5.0,
                 foregroundColor: Colors.white,
                 backgroundColor: _isButtonEnabled ? Colors.black54 : Colors.grey,
                 shape: RoundedRectangleBorder(

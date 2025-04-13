@@ -4,6 +4,24 @@ import '../services/device_id_service.dart';
 class FirebaseService {
   final FirebaseFirestore firestore = FirebaseFirestore.instance;
 
+  // Used for UPDATE polling
+  Future<void> registerDevice() async {
+    try {
+      String deviceId = await getOrGenDeviceId();
+      await firestore
+          .collection('device_registry')
+          .doc(deviceId)
+          .set({
+        'lastActive': FieldValue.serverTimestamp(),
+      });
+
+      print("Device registered in global registry");
+    } catch (e) {
+      print("Error registering device: $e");
+    }
+  }
+
+
   // Retrieves the username from Firestore
   Future<String?> getUserName() async {
     try {
@@ -113,7 +131,80 @@ class FirebaseService {
     return null; // Return null if no mode is found or an error occurs
   }
 
-  // Retrieves a stream of the number of emergency contacts from Firestore
+  // Retrieves the crash location
+  Future<GeoPoint?> getCrashLocation() async {
+    try {
+      final deviceId = await getOrGenDeviceId();
+
+      DocumentSnapshot snapshot = await firestore
+          .collection(deviceId)
+          .doc('settings')
+          .get();
+
+      if (snapshot.exists && snapshot.data() != null) {
+        final data = snapshot.data() as Map<String, dynamic>;
+        return data['initialPosition'] as GeoPoint?;
+      } else {
+        return null;
+      }
+    } catch (e) {
+      print("Failed to retrieve crash location: $e");
+      return null;
+    }
+  }
+
+  // Save crash location to Firestore
+  Future<void> saveCrashLocation(double latitude, double longitude) async {
+    try {
+      String deviceId = await getOrGenDeviceId();
+      await firestore
+          .collection(deviceId)
+          .doc('settings')
+          .set({
+        'initialPosition': GeoPoint(latitude, longitude),
+        'crashTimestamp': FieldValue.serverTimestamp(),
+      },
+          SetOptions(merge: true));
+
+      print("Saved crash location to Firestore: $latitude, $longitude");
+    } catch (e) {
+      print("Error saving crash location: $e");
+    }
+  }
+
+  // Clear crash location from Firestore
+  Future<void> clearCrashLocation() async {
+    try {
+      String deviceId = await getOrGenDeviceId();
+      await firestore
+          .collection(deviceId)
+          .doc('settings')
+          .update({
+        'initialPosition': FieldValue.delete(),
+        'crashTimestamp': FieldValue.delete(),
+      });
+
+      print("Cleared crash location from Firestore");
+    } catch (e) {
+      print("Error clearing crash location: $e");
+    }
+  }
+
+  // Update mode in Firestore
+  Future<void> updateMode(String newMode) async {
+    try {
+      String deviceId = await getOrGenDeviceId();
+      await firestore
+          .collection(deviceId)
+          .doc('settings')
+          .set({'mode': newMode}, SetOptions(merge: true));
+
+      print("Updated Firestore mode to: $newMode");
+    } catch (e) {
+      print("Error updating Firestore mode: $e");
+    }
+  }
+
   // Retrieves a stream of the number of emergency contacts from Firestore
   Stream<int> getEmergencyContactCountStream() async* {
     try {

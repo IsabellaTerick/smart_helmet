@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import './mode_synchronizer.dart';
 import './crash_confirm_popup.dart';
+import './crash_confirm_popup_timer.dart';
 
 class CrashSafeBtns extends StatefulWidget {
   final ModeSynchronizer modeSynchronizer;
@@ -26,7 +27,7 @@ class _CrashSafeBtnsState extends State<CrashSafeBtns> {
 
   Future<void> _handleCrashButtonPress(BuildContext context) async {
     // Show confirmation dialog before sending crash alert
-    bool? userConfirmed = await showCrashConfirmationDialog(context);
+    bool? userConfirmed = await showCrashConfirmationTimerDialog(context);
 
     if (userConfirmed == true) {
       widget.modeSynchronizer.setMode(context, "crash");
@@ -53,6 +54,7 @@ class _CrashSafeBtnsState extends State<CrashSafeBtns> {
                     ? () => _handleCrashButtonPress(context)
                     : null,
                 style: ElevatedButton.styleFrom(
+                  elevation: 5.0,
                   backgroundColor: Colors.red[800],
                   foregroundColor: Colors.white,
                   shape: RoundedRectangleBorder(
@@ -60,7 +62,7 @@ class _CrashSafeBtnsState extends State<CrashSafeBtns> {
                   ),
                 ),
                 child: const Text(
-                  'CRASH ALERT!',
+                  'SEND CRASH ALERT',
                   style: TextStyle(
                     fontFamily: 'Nunito',
                     fontWeight: FontWeight.bold,
@@ -78,6 +80,7 @@ class _CrashSafeBtnsState extends State<CrashSafeBtns> {
                   ? () => _handleSafeButtonPress(context)
                   : null,
               style: ElevatedButton.styleFrom(
+                elevation: 5.0,
                 backgroundColor: Colors.lightGreen[700],
                 foregroundColor: Colors.white,
                 shape: RoundedRectangleBorder(
@@ -85,7 +88,7 @@ class _CrashSafeBtnsState extends State<CrashSafeBtns> {
                 ),
               ),
               child: const Text(
-                'SAFE ALERT!',
+                'CONFIRM SAFETY',
                 style: TextStyle(
                   fontFamily: 'Nunito',
                   fontWeight: FontWeight.bold,

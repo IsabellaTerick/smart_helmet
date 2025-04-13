@@ -37,7 +37,8 @@ class CrashMsgState extends State<CrashMsg> {
   }
 
   void loadCrashMsg(String deviceId) async {
-    DocumentSnapshot doc = await firestore.collection(deviceId).doc('settings').get();
+    DocumentSnapshot doc =
+        await firestore.collection(deviceId).doc('settings').get();
     if (doc.exists) {
       setState(() {
         crashMsgCtrl.text = doc['message'] ?? '';
@@ -50,18 +51,20 @@ class CrashMsgState extends State<CrashMsg> {
     String trimmedMsg = newMsg.trim();
 
     // Update Firestore with the trimmed message
-    if (crashMsgCtrl.text != trimmedMsg) {
-      await firestore.collection(widget.deviceId).doc('settings').set({'message': trimmedMsg});
-      print("New crash message: $trimmedMsg");
+    await firestore
+        .collection(widget.deviceId)
+        .doc('settings')
+        .set({'message': trimmedMsg});
+    print("New crash message: $trimmedMsg");
 
-      // Trigger "Crash message updated!" notification
-      final notificationManager = Provider.of<NotificationManager>(context, listen: false);
-      notificationManager.showNotification(
-        message: "Crash message updated!",
-        backgroundColor: Colors.grey,
-        icon: Icons.edit_note,
-      );
-    }
+    // Trigger "Crash message updated!" notification
+    final notificationManager =
+        Provider.of<NotificationManager>(context, listen: false);
+    notificationManager.showNotification(
+      message: "Crash message updated!",
+      backgroundColor: Colors.grey,
+      icon: Icons.edit_note,
+    );
     // Update the text field with the trimmed message
     setState(() {
       crashMsgCtrl.text = trimmedMsg;
@@ -77,43 +80,65 @@ class CrashMsgState extends State<CrashMsg> {
         FocusScope.of(context).unfocus();
       },
       child: Container(
-          padding: EdgeInsets.all(20.0),
-          child: Column(
-              children: [
-                Padding(
-                  padding: EdgeInsets.only(bottom: 15.0),
-                  child: Text(
-                      'Default Crash Message:',
-                      style: TextStyle(fontFamily: 'Nunito', fontSize: 20, fontWeight: FontWeight.bold)
-                  ),
-                ),
-                TextField(
-                    controller: crashMsgCtrl,
-                    focusNode: _focusNode, // Assign the focus node
-                    onEditingComplete: () {
-                      // Trim the message before updating
-                      updateCrashMsg(crashMsgCtrl.text);
-                      // Unfocus the text field when editing is complete
-                      _focusNode.unfocus();
-                    },
-                    onSubmitted: (value) {
-                      // Also handle the onSubmitted event
-                      updateCrashMsg(value);
-                      _focusNode.unfocus();
-                    },
-                    textInputAction: TextInputAction.done,
-                    style: TextStyle(fontFamily: 'Nunito', fontSize: 15),
-                    minLines: 5,
-                    maxLines: 5,
-                    decoration: const InputDecoration(
-                        filled: true,
-                        fillColor: Colors.white,
-                        border: OutlineInputBorder(),
-                        hintText: 'Enter custom crash message...'
-                    )
-                )
-              ]
-          )
+        padding: EdgeInsets.all(15.0),
+        child: Card(
+          elevation: 5.0,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16.0),
+          ),
+          child: Padding(
+            padding: EdgeInsets.all(16.0),
+            child:
+                Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+              Padding(
+                padding: EdgeInsets.only(bottom: 15.0),
+                child: Text('Default Crash Message:',
+                    style: TextStyle(
+                        fontFamily: 'Nunito',
+                        fontSize: 20,
+                        fontWeight: FontWeight.bold)),
+              ),
+              TextField(
+                  controller: crashMsgCtrl,
+                  focusNode: _focusNode,
+                  onEditingComplete: () {
+                    updateCrashMsg(crashMsgCtrl.text);
+                    _focusNode.unfocus();
+                  },
+                  onSubmitted: (value) {
+                    updateCrashMsg(value);
+                    _focusNode.unfocus();
+                  },
+                  textInputAction: TextInputAction.done,
+                  style: TextStyle(fontFamily: 'Nunito', fontSize: 15),
+                  minLines: 5,
+                  maxLines: 5,
+                  decoration: InputDecoration(
+                    filled: true,
+                    fillColor: Colors.white,
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12.0),
+                      borderSide: BorderSide(color: Colors.indigo.shade200),
+                    ),
+                    enabledBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12.0),
+                      borderSide:
+                          BorderSide(color: Colors.indigo.shade200, width: 1.5),
+                    ),
+                    focusedBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12.0),
+                      borderSide:
+                          BorderSide(color: Colors.indigo.shade400, width: 2.0),
+                    ),
+                    contentPadding:
+                        EdgeInsets.symmetric(horizontal: 16.0, vertical: 12.0),
+                    hintText: 'Enter your default crash message...',
+                    hintStyle:
+                        TextStyle(fontFamily: 'Nunito', color: Colors.black38),
+                  ))
+            ]),
+          ),
+        ),
       ),
     );
   }

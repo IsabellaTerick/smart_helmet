@@ -12,7 +12,7 @@ class TwilioService {
   TwilioService() {
     twilioFlutter = TwilioFlutter(
       accountSid: 'AC5ef8faf67b7a79889cefdfb6ac89d1e4',
-      authToken: 'c411348ff8fd3e8eaf1894e5098bcc3c',
+      authToken: '649b23ee2074d621c9af554f006c4453',
       twilioNumber: '+18667192795',
     );
   }
@@ -57,19 +57,35 @@ class TwilioService {
         String? link,
       }) async {
     try {
-      String? userName = await firebaseService.getUserName();
-      String? mode = await firebaseService.getMode();
-      String? contactCrashMsg;
       List<String?>? phoneNums = await firebaseService.getEmergencyContactNumbers();
       List<String> contacts = (phoneNums ?? []).whereType<String>().toList();
+
+      // Check if there are any contacts
+      if (contacts.isEmpty) {
+        print("No contacts specified");
+
+        // Show notification that no contacts are specified
+        final notificationManager = Provider.of<NotificationManager>(context, listen: false);
+        notificationManager.showNotification(
+          message: "No contacts specified",
+          backgroundColor: Colors.grey,
+          icon: Icons.warning,
+        );
+        return false; // Return false since no messages were sent
+      }
+
+      String? mode = await firebaseService.getMode();
 
       bool allMessagesSent = true; // Track if all messages were sent successfully
 
       for (String phoneNum in contacts) {
-        String? personalizedMessage = additionalMessage;
+        String? personalizedMessage = '';
 
         if (mode == 'crash') {
-          personalizedMessage = await firebaseService.getContactCustomCrashMsg(phoneNum) ?? additionalMessage;
+          personalizedMessage = await firebaseService.getContactCustomCrashMsg(phoneNum);
+          if (personalizedMessage == null || personalizedMessage == '') {
+            personalizedMessage = additionalMessage;
+          }
         }
 
         String fullMessage = _formatMessage(
@@ -141,7 +157,10 @@ class TwilioService {
     String? userName = await firebaseService.getUserName();
 
     String mainMessage =
-        'Alert from Smart Helmet: ${userName ?? "Unknown User"} has been involved in a crash. Please check on them and contact emergency.';
+        'Alert from Smart Helmet: ${userName ?? "Unknown User"} may have been involved in a crash. '
+        'Please check on them as soon as possible or contact emergency services if necessary. '
+        'The location of the crash is below.'
+        '\n\nReply UPDATE to receive their current location.';
 
     await _sendMessagesToContacts(
       context,
@@ -156,7 +175,9 @@ class TwilioService {
     String? userName = await firebaseService.getUserName();
 
     String mainMessage =
-        'Alert from Smart Helmet: ${userName ?? "Unknown User"} is on the move.';
+        'Alert from Smart Helmet: ${userName ?? "Unknown User"} has relocated since their possible crash. '
+        'Their current location is below. '
+        '\n\nReply UPDATE to receive their latest location.';
 
     await _sendMessagesToContacts(
       context,
@@ -170,7 +191,10 @@ class TwilioService {
     String? userName = await firebaseService.getUserName();
 
     String mainMessage =
-        'Alert from Smart Helmet: ${userName ?? "Unknown User"} has confirmed their safety. No further action needed at this time.';
+        'Alert from Smart Helmet: ${userName ?? "Unknown User"} has confirmed their safety. '
+        'No further action is necessary.'
+        '\n\nLocation tracking has been disabled and replying UPDATE will no longer return their location.'
+        '\n\nThank you for staying alert!';
 
     await _sendMessagesToContacts(
       context,

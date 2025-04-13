@@ -40,83 +40,159 @@ Future<void> editCrashMessageDialog(BuildContext context, String? deviceId, Stri
     builder: (BuildContext context) {
       return StatefulBuilder(
         builder: (context, setState) {
-          return AlertDialog(
-            title: Text("Edit Crash Message"),
-            content: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                TextField(
-                  controller: msgCtrl,
-                  decoration: InputDecoration(
-                    labelText: "Custom Crash Message",
-                    errorText: errorMessage == "Please enter a crash message" ? errorMessage : null,
-                  ),
-                ),
-              ],
+          return Dialog(
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(16),
             ),
-            actions: [
-              TextButton(
-                onPressed: () {
-                  Navigator.pop(context); // Close the dialog without saving
-                },
-                child: const Text("Cancel"),
+            child: Container(
+              constraints: BoxConstraints(
+                maxWidth: MediaQuery.of(context).size.width * 0.9,
+                maxHeight: MediaQuery.of(context).size.height * 0.8,
               ),
-              ElevatedButton(
-                onPressed: () async {
-                  String crashMessage = msgCtrl.text.trim();
+              padding: const EdgeInsets.all(20),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    "Edit Custom Crash Message",
+                    style: Theme.of(context).textTheme.headlineSmall,
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    "Your custom crash will be sent to this contact in the event of a crash."
+                        " If left blank, your default crash message will be sent instead.",
+                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                      color: Colors.grey[600],
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  Flexible(
+                    child: TextField(
+                      controller: msgCtrl,
+                      decoration: InputDecoration(
+                        hintText: "Enter your custom crash message...",
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        errorText: errorMessage,
+                        contentPadding: const EdgeInsets.all(16),
+                      ),
+                      maxLines: null,
+                      minLines: 5,
+                      textCapitalization: TextCapitalization.sentences,
+                      keyboardType: TextInputType.multiline,
+                      textInputAction: TextInputAction.newline,
+                    ),
+                  ),
+                  const SizedBox(height: 24),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.end,
+                    children: [
+                      TextButton(
+                        onPressed: () {
+                          Navigator.pop(context);
+                        },
+                        child: const Text("Cancel"),
+                      ),
+                      TextButton(
+                        onPressed: () async {
+                          try {
+                            // Get device ID if not provided
+                            String currentDeviceId = deviceId ?? await getOrGenDeviceId();
 
-                  // Validate crash message
-                  if (crashMessage.isEmpty) {
-                    setState(() {
-                      errorMessage = "Please enter a crash message";
-                    });
-                    return;
-                  }
+                            // Reference to the contacts collection in Firestore
+                            CollectionReference contacts = FirebaseFirestore.instance
+                                .collection(currentDeviceId)
+                                .doc('contacts')
+                                .collection('list');
 
-                  try {
-                    setState(() {
-                      errorMessage = null;
-                    });
+                            if (contactId != null) {
+                              // Update the crash message in Firestore
+                              await contacts.doc(contactId).update({
+                                'customCrashMsg': null,
+                                'timestamp': FieldValue.serverTimestamp(),
+                              });
 
-                    // Get device ID if not provided
-                    String currentDeviceId = deviceId ?? await getOrGenDeviceId();
+                              // Trigger notification
+                              final notificationManager =
+                              Provider.of<NotificationManager>(context, listen: false);
+                              notificationManager.showNotification(
+                                message: "Emergency message cleared",
+                                backgroundColor: Colors.grey,
+                                icon: Icons.message,
+                              );
+                            }
 
-                    // Reference to the contacts collection in Firestore
-                    CollectionReference contacts = FirebaseFirestore.instance
-                        .collection(currentDeviceId)
-                        .doc('contacts')
-                        .collection('list');
+                            // Close the dialog
+                            Navigator.pop(context);
+                          } catch (e) {
+                            print("Error clearing emergency message: $e");
+                            setState(() {
+                              errorMessage = "Failed to clear message. Please try again.";
+                            });
+                          }
+                        },
+                        child: Text("Clear"),
+                      ),
+                      const SizedBox(width: 4),
+                      ElevatedButton(
+                        onPressed: () async {
+                          String crashMessage = msgCtrl.text.trim();
+                          if (crashMessage.isEmpty) {
+                            setState(() {
+                              errorMessage = "Please enter a message";
+                            });
+                            return;
+                          }
 
-                    if (contactId != null) {
-                      // Update the crash message in Firestore
-                      await contacts.doc(contactId).update({
-                        'customCrashMsg': crashMessage,
-                        'timestamp': FieldValue.serverTimestamp(),
-                      });
+                          try {
+                            // Get device ID if not provided
+                            String currentDeviceId = deviceId ?? await getOrGenDeviceId();
 
-                      // Trigger "Crash message updated" notification
-                      final notificationManager =
-                      Provider.of<NotificationManager>(context, listen: false);
-                      notificationManager.showNotification(
-                        message: "Crash message updated",
-                        backgroundColor: Colors.grey,
-                        icon: Icons.message,
-                      );
-                    }
+                            // Reference to the contacts collection in Firestore
+                            CollectionReference contacts = FirebaseFirestore.instance
+                                .collection(currentDeviceId)
+                                .doc('contacts')
+                                .collection('list');
 
-                    // Close the dialog
-                    Navigator.pop(context);
-                  } catch (e) {
-                    print("Error updating crash message: $e");
+                            if (contactId != null) {
+                              // Update the crash message in Firestore
+                              await contacts.doc(contactId).update({
+                                'customCrashMsg': crashMessage,
+                                'timestamp': FieldValue.serverTimestamp(),
+                              });
 
-                    setState(() {
-                      errorMessage = "Failed to update crash message. Please try again.";
-                    });
-                  }
-                },
-                child: Text("Save"),
+                              // Trigger notification
+                              final notificationManager =
+                              Provider.of<NotificationManager>(context, listen: false);
+                              notificationManager.showNotification(
+                                message: "Emergency message updated",
+                                backgroundColor: Colors.green,
+                                icon: Icons.check_circle,
+                              );
+                            }
+
+                            // Close the dialog
+                            Navigator.pop(context);
+                          } catch (e) {
+                            print("Error updating emergency message: $e");
+                            setState(() {
+                              errorMessage = "Failed to update message. Please try again.";
+                            });
+                          }
+                        },
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Theme.of(context).primaryColor,
+                          foregroundColor: Colors.white,
+                        ),
+                        child: Text("Save"),
+                      ),
+                    ],
+                  ),
+                ],
               ),
-            ],
+            ),
           );
         },
       );

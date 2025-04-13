@@ -5,6 +5,7 @@ import './services/device_id_service.dart';
 import './bluetooth/bluetooth_service.dart';
 import './bluetooth/bluetooth_btn.dart';
 import './settings/settings_btn.dart';
+import './help/help_btn.dart';
 import './crash/crash_msg.dart';
 import './crash/crash_safe_btns.dart';
 import './contacts/emergency_contact_tbl.dart';
@@ -15,13 +16,22 @@ import './notifications/notification_manager.dart';
 import './notifications/notification_banner.dart';
 import './settings/edit_settings_popup.dart';
 import './services/firebase_service.dart';
+import './services/update_location_service.dart';
 import 'firebase_options.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+
   await Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform,
   );
+
+  // Register device in the global registry
+  await FirebaseService().registerDevice();
+
+  // Initialize UpdateLocationService
+  await UpdateLocationService().initialize();
+
   runApp(
     ChangeNotifierProvider(
       create: (_) => NotificationManager(),
@@ -90,6 +100,8 @@ class MyHomePageState extends State<MyHomePage> {
     WidgetsBinding.instance.addPostFrameCallback((_) async {
       _bluetoothService.scanAndConnect(context);
 
+      await _modeSynchronizer.handleCrashInitialization(context);
+
       String? userName = await _firebaseService.getUserName();
       print("Username: ${userName}");
       if (userName == null || userName.isEmpty) {
@@ -102,10 +114,11 @@ class MyHomePageState extends State<MyHomePage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        backgroundColor: Colors.indigo[200],
+        backgroundColor: Colors.indigo.shade200,
         title: Text(widget.title),
         actions: [
           BluetoothIcon(bluetoothService: _bluetoothService),
+          HelpBtn(),
           EditSettingsBtn(),
         ],
       ),
@@ -122,7 +135,7 @@ class MyHomePageState extends State<MyHomePage> {
             child: LayoutBuilder(
               builder: (context, constraints) {
                 return SingleChildScrollView(
-                  physics: const AlwaysScrollableScrollPhysics(),
+                  physics: const ClampingScrollPhysics(),
                   child: ConstrainedBox(
                     constraints: BoxConstraints(
                       minHeight: constraints.maxHeight,
@@ -132,14 +145,14 @@ class MyHomePageState extends State<MyHomePage> {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.stretch,
                         children: <Widget>[
-                          const SizedBox(height: 5),
+                          const SizedBox(height: 10),
                           // Crash message section
                           CrashMsg(deviceId: deviceId),
-                          const SizedBox(height: 5),
+                          const SizedBox(height: 0),
 
                           // Crash/Safe buttons
                           CrashSafeBtns(modeSynchronizer: _modeSynchronizer),
-                          const SizedBox(height: 5),
+                          const SizedBox(height: 0),
 
                           // Emergency contacts table - no longer in a scrollable container
                           EmergencyContactTbl(modeSynchronizer: _modeSynchronizer),
@@ -149,7 +162,7 @@ class MyHomePageState extends State<MyHomePage> {
                           AddContactBtn(modeSynchronizer: _modeSynchronizer),
 
                           // Add padding at the bottom for better scrolling experience
-                          const SizedBox(height: 24),
+                          const SizedBox(height: 10),
                         ],
                       ),
                     ),

@@ -8,6 +8,6 @@ void updateResistor() {
 
   if (voltage > 2.0) {
     currentMode = "cancel";
-    Serial.println("Switched to Cancel Mode");
+    Serial.println("CRASH DETECTED: Switched to Cancel Mode");
   }
 }

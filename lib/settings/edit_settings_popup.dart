@@ -53,7 +53,7 @@ void editUserSettings(BuildContext context) {
               children: [
                 TextField(
                   controller: usernameCtrl,
-                  decoration: const InputDecoration(labelText: "Name"),
+                  decoration: const InputDecoration(labelText: "Name:"),
                 ),
                 Row(
                   children: [

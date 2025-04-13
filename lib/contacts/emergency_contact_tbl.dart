@@ -3,7 +3,6 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import '../services/device_id_service.dart';
 import './contact_service.dart';
 import '../crash/mode_synchronizer.dart';
-import '../services/firebase_service.dart';
 
 class EmergencyContactTbl extends StatefulWidget {
   final ModeSynchronizer modeSynchronizer;
@@ -40,13 +39,13 @@ class _EmergencyContactTblState extends State<EmergencyContactTbl> {
         return Padding(
           padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
           child: Container(
-            constraints: const BoxConstraints(maxHeight: 350),
+            constraints: const BoxConstraints(maxHeight: 225),
             decoration: BoxDecoration(
               color: Colors.white,
               borderRadius: BorderRadius.circular(12.0),
               boxShadow: [
                 BoxShadow(
-                  color: Colors.grey.withOpacity(0.2),
+                  color: Colors.grey,
                   spreadRadius: 1,
                   blurRadius: 6,
                   offset: const Offset(0, 3),
@@ -69,24 +68,29 @@ class _EmergencyContactTblState extends State<EmergencyContactTbl> {
                 }
 
                 var contacts = snapshot.data!.docs;
-                return ListView.separated(
-                  padding: EdgeInsets.zero,
-                  itemCount: contacts.length,
-                  separatorBuilder: (context, index) => const Divider(height: 1),
-                  itemBuilder: (context, index) {
-                    var contact = contacts[index];
-                    var contId = contact.id;
-                    var contName = contact['name'];
-                    var contNum = contact['phoneNumber'];
+                return LayoutBuilder(
+                    builder: (context, constraints) {
+                      return ListView.separated(
+                        padding: EdgeInsets.zero,
+                        itemCount: contacts.length,
+                        shrinkWrap: true, // Makes the list height fit to content
+                        separatorBuilder: (context, index) => const Divider(height: 1),
+                        itemBuilder: (context, index) {
+                          var contact = contacts[index];
+                          var contId = contact.id;
+                          var contName = contact['name'];
+                          var contNum = contact['phoneNumber'];
 
-                    return _buildContactListTile(
-                        context,
-                        deviceId,
-                        contId,
-                        contName,
-                        contNum
-                    );
-                  },
+                          return _buildContactListTile(
+                              context,
+                              deviceId,
+                              contId,
+                              contName,
+                              contNum
+                          );
+                        },
+                      );
+                    }
                 );
               },
             ),
@@ -108,7 +112,7 @@ class _EmergencyContactTblState extends State<EmergencyContactTbl> {
           ),
           const SizedBox(height: 16),
           Text(
-            'No emergency contacts added yet',
+            'No emergency contacts added',
             style: TextStyle(
               fontFamily: 'Nunito',
               fontSize: 16,
@@ -162,6 +166,8 @@ class _EmergencyContactTblState extends State<EmergencyContactTbl> {
           fontFamily: 'Nunito',
           color: Colors.grey[600],
         ),
+        maxLines: 1,
+        overflow: TextOverflow.ellipsis,
       ),
       trailing: _buildActions(context, deviceId, contactId, name, phoneNumber),
     );
@@ -205,36 +211,15 @@ class _EmergencyContactTblState extends State<EmergencyContactTbl> {
           ),
           tooltip: 'Edit Message',
           onPressed: isEditable
-              ? () async {
-            try {
-              await editContactCrashMsg(
+              ? () => editContactCrashMsg(
                   context,
                   deviceId,
                   contactId,
                   name,
                   phoneNumber
-              );
-              if (context.mounted) {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(
-                    content: Text("Crash message updated"),
-                    backgroundColor: Colors.grey,
-                  ),
-                );
-              }
-            } catch (e) {
-              if (context.mounted) {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(
-                    content: Text("Failed to update crash message"),
-                    backgroundColor: Colors.red,
-                  ),
-                );
-              }
-            }
-          }
-              : null,
-        ),
+            )
+                : null,
+          ),
 
         // Delete Contact Action
         IconButton(
@@ -245,20 +230,7 @@ class _EmergencyContactTblState extends State<EmergencyContactTbl> {
           tooltip: 'Delete Contact',
           onPressed: isEditable
               ? () async {
-            try {
-              await deleteContact(context, deviceId, contactId, name);
-              if (context.mounted) {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(content: Text("Contact deleted")),
-                );
-              }
-            } catch (e) {
-              if (context.mounted) {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(content: Text("Failed to delete contact")),
-                );
-              }
-            }
+            await deleteContact(context, deviceId, contactId, name);
           }
               : null,
         ),
