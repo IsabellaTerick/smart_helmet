@@ -1,5 +1,6 @@
 #include <Arduino.h>
 #include "blindspot_detection.h"
+#include "vibrate_handler.h"
 
 // PWM config
 const int pwmFreq = 200;
@@ -31,8 +32,8 @@ void updateBlindSpotTest() {
   float rightCm = (rightVolt / 0.006445) * 2.54;
 
   // Trigger vibration
-  ledcWrite(LEFT_LRA, (leftCm < distanceThresholdCm) ? 255 : 0);
-  ledcWrite(RIGHT_LRA, (rightCm < distanceThresholdCm) ? 255 : 0);
+  ledcWrite(LEFT_LRA, (leftCm < distanceThresholdCm) ? vibrationMode : 0);
+  ledcWrite(RIGHT_LRA, (rightCm < distanceThresholdCm) ? vibrationMode : 0);
 
    // LEFT LED
   digitalWrite(LEFT_LED_PIN, (leftCm < distanceThresholdCm) ? HIGH : LOW);
