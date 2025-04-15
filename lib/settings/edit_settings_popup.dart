@@ -53,7 +53,9 @@ void editUserSettings(BuildContext context) {
               children: [
                 TextField(
                   controller: usernameCtrl,
-                  decoration: const InputDecoration(labelText: "Name:"),
+                  decoration: const InputDecoration(labelText: "Full Name:"),
+                  textCapitalization: TextCapitalization.words,
+
                 ),
                 Row(
                   children: [

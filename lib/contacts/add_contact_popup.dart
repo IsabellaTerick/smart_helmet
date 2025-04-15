@@ -41,6 +41,7 @@ Future<void> addContactDialog(BuildContext context,
               children: [
                 TextField(
                   controller: nameCtrl,
+                  textCapitalization: TextCapitalization.words,
                   decoration: InputDecoration(
                     labelText: "Name:",
                     errorText: errorMessage == "Please enter a name" ? errorMessage : null,

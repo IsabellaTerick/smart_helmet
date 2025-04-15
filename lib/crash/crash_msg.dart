@@ -113,6 +113,7 @@ class CrashMsgState extends State<CrashMsg> {
                   style: TextStyle(fontFamily: 'Nunito', fontSize: 15),
                   minLines: 5,
                   maxLines: 5,
+                  textCapitalization: TextCapitalization.sentences,
                   decoration: InputDecoration(
                     filled: true,
                     fillColor: Colors.white,

@@ -110,7 +110,7 @@ class HelpContent extends StatelessWidget {
                 style: TextStyle(fontFamily: 'Nunito'),
               ),
               const SizedBox(height: 8),
-              _buildBulletPoint('Your Name:', 'This name will be included in all crash alert messages.'),
+              _buildBulletPoint('Your Name:', 'Your name, saved in settings, will be included in all crash alert messages.'),
               _buildBulletPoint('Default Crash Message:', 'This is the general message sent to all contacts unless a specific one is provided.'),
               _buildBulletPoint('Custom Messages:', 'Tailor messages for individual contacts. Include instructions, reassurance, or code words to verify the message is legitimate.'),
             ],
