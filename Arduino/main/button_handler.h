@@ -15,6 +15,7 @@ const unsigned long CANCEL_MODE_TIMEOUT = 15000; // 15 seconds to auto-switch to
 extern String currentMode;
 extern int vibrationMode;
 extern bool ledState;
+extern int impactTime;
 
 // Function prototypes
 void setupButtonHandler();

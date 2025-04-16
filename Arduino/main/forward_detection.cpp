@@ -2,7 +2,7 @@
 #include "forward_detection.h"
 
 // LED turns on if object is closer than this (in cm)
-const float distanceThresholdCm = 50.0;
+const float distanceThresholdCm = 20.0;
 
 void initForwardTest() {
 

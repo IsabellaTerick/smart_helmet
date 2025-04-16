@@ -15,6 +15,9 @@
 String currentMode = "safe"; // Current mode from bluetooth_service
 int vibrationMode = 0; // LED brightness level (0: low, 1: medium, 2: high)
 bool ledState = LOW; // Initial state of the LED (off)
+bool bsLeftVibrate = false;
+bool bsRightVibrate = false;
+int impactTime = 0;
 
 void setup() {
   // Initialize button, LED, and vibrate handlers

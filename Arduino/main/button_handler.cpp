@@ -2,7 +2,7 @@
 #include "bluetooth_service.h"
 
 // Internal variables
-bool oldButtonState = LOW;
+bool oldButtonState = HIGH;
 unsigned long lastPressTime = 0; // Track time of last button press
 int tapCount = 0; // Track consecutive taps
 unsigned long holdStartTime = 0; // Track when the button was first pressed
@@ -18,7 +18,7 @@ void handleButtonPress(bool buttonState) {
   unsigned long pressDuration = millis() - holdStartTime;
 
   // Handle button press logic
-  if (buttonState == HIGH) { // Button pressed
+  if (buttonState == LOW) { // Button pressed
     lastPressTime = millis(); // Tracks until the button is released
 
     if (!isHolding) {
@@ -35,7 +35,7 @@ void handleButtonPress(bool buttonState) {
   }
 
   // Handle button release logic
-  if (buttonState == LOW && oldButtonState == HIGH) { // Button released
+  if (buttonState == HIGH && oldButtonState == LOW) { // Button released
     if (pressDuration <= HOLD_THRESHOLD) { // Short press (tap)
       handleTap();
     }
@@ -52,7 +52,7 @@ void handleButtonPress(bool buttonState) {
   }
 
   // Handle cancel mode timeout
-  if (currentMode == "cancel" && millis() - lastPressTime > CANCEL_MODE_TIMEOUT) {
+  if (currentMode == "cancel" && millis() - impactTime > CANCEL_MODE_TIMEOUT) {
     currentMode = "crash"; // Auto-switch to crash mode
     Serial.println("Timed out: Crash Mode");
     handleBluetoothNotifications(currentMode);

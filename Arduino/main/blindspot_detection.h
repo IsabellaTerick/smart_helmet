@@ -11,6 +11,10 @@
 #define LEFT_LED_PIN 26
 #define RIGHT_LED_PIN 25
 
+extern int vibrationMode;
+extern bool bsLeftVibrate;
+extern bool bsRightVibrate;
+
 void initBlindSpotTest();
 void updateBlindSpotTest();
 
