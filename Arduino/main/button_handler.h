@@ -3,7 +3,7 @@
 
 #include <Arduino.h>
 
-#define BUTTON_PIN 2  // GPIO pin for the button
+#define BUTTON_PIN 4  // GPIO pin for the button
 
 // Button constants
 const unsigned long HOLD_THRESHOLD = 500; // 0.5 seconds for it to be considered not a tap
@@ -15,6 +15,7 @@ const unsigned long CANCEL_MODE_TIMEOUT = 15000; // 15 seconds to auto-switch to
 extern String currentMode;
 extern int vibrationMode;
 extern bool ledState;
+extern int impactTime;
 
 // Function prototypes
 void setupButtonHandler();

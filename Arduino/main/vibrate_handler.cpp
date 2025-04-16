@@ -31,7 +31,7 @@ void updateVibration() {
     if (safeFlashing) {
       shouldVibrate = (millis() / 250) % 2 ? true : false; // Match LED pattern
     } else {
-      shouldVibrate = false;
+      shouldVibrate = bsLeftVibrate || bsLeftVibrate;
     }
   } else if (currentMode == "cancel") {
     // Flash vibration
@@ -49,6 +49,16 @@ void updateVibration() {
   // Apply vibration changes
   if (shouldVibrate && duty > 0) {
     if (!isVibrating) {
+      if (currentMode == "safe") {
+        // Blind spot and forward collision detection
+        if (safeFlashing) {
+          int leftDuty = duty ? bsLeftVibrate : 0;
+          int rightDuty = duty ? bsRightVibrate : 0;
+          ledcWrite(LEFT_LRA, leftDuty);
+          ledcWrite(RIGHT_LRA, rightDuty);
+          return;
+        }
+      }
       // Start new vibration and record time
       ledcWrite(LEFT_LRA, duty);
       ledcWrite(RIGHT_LRA, duty);

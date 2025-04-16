@@ -15,6 +15,8 @@
 extern String currentMode;
 extern int vibrationMode;
 extern bool safeFlashing;
+extern bool bsLeftVibrate;
+extern bool bsRightVibrate;
 
 // Function prototypes
 void setupVibrateHandler();
