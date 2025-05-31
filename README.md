@@ -1,6 +1,6 @@
 # Smart Motorcycle Helmet
 
-[Watch the Demo Video](https://youtu.be/EaheAvZVrQg?si=x12echzrcBc7yG3L)
+Watch the Youtube video demonstration: [Demo Video](https://youtu.be/EaheAvZVrQg?si=x12echzrcBc7yG3L)
 
 ![Expo Poster](pictures/EXPO_poster.jpg)
 
