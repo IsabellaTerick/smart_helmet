@@ -2,9 +2,13 @@
 
 [Watch the Demo Video](https://youtu.be/EaheAvZVrQg?si=x12echzrcBc7yG3L)
 
+![Expo Poster](pictures/EXPO_poster.jpg)
+
 ## Overview
 
 The Smart Motorcycle Helmet is designed to enhance rider safety and emergency response through real-time alerts and monitoring. Built as part of a senior design project at the University of Pittsburgh, the system integrates crash detection, blind spot monitoring, forward collision warnings, and automatic emergency contact notifications through a connected mobile app.
+
+![Helmet Diagram](pictures/Slide1.jpg)
 
 ## Key Features
 
@@ -24,3 +28,5 @@ The system consists of three main components:
 - Helmet Hardware: Built using an Arduino-compatible microcontroller, ultrasonic sensors, LEDs, force-sensitive resistors, and a Bluetooth module.
 - Flutter Mobile App: Communicates with the helmet and manages emergency contact alerts via the Twilio API.
 - Backend Logic: Written in Dart with Firebase integration for user settings, messaging, and location tracking.
+
+![Helmet Diagram](pictures/IMG_4671.jpg)
